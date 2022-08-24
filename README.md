@@ -10,7 +10,8 @@ devtools 2.4.3
 ## Workflow 
 
 Currently, use RHAS categories to delimit sites for input MAST topologies:  
-```{mermaid}  
+
+```mermaid  
 flowchart TD
 	0[MSA] --> 1["1. Estimate the best-fitting (RHAS) model for a single unconstrained tree; output site lnLs"] --> 2[2. Run HMM to assign sites according to RHAS classes and save partitioning scheme] --> 3a[3a. Construct individual trees for each HMM class partition] & 3b[3b. Run merged partition model for comparison]
 	3a --> 4a[4a. Check for and remove identical topologies] & 4b[4b. What happens when all topologies are identical? hehe]
