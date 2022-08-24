@@ -1,0 +1,74 @@
+---
+title: "Lytras RHAS HMM"
+author: "Fred Jaya"
+output: 
+   html_document:
+     theme: spacelab
+     code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = T,
+  warning = F, 
+  dev = 'svg',
+  fig.width = 8,
+  fig.path = "/home/fredjaya/GitHub/rec-mast/lytras/figs/")
+
+library(MixtureModelHMM)
+library(ggplot2)
+```
+
+## Plotting raw data  
+
+```{r}
+plot_scatter("i0.siteprob") +
+  labs(y = "Posterior probability")
+
+plot_scatter("i0.sitelh") +
+  labs(y = "lnL")
+```
+
+There is a clear transition between classes `p1` to `p3`/`p2` at positions ~22k and 28k. Also around ~4k, the posterior probabilities have a stronger signal than the site likelihoods.  
+
+This data is suitable for analysis with a HMM.  
+
+## Running the HMM
+
+### With posterior probabilities
+```{r}
+hmm_prob <- run_HMM(site_info = "i0.siteprob", "i0.alninfo")
+hmm_prob$alignment_plot
+```
+
+### With site likelihoods  
+```{r}
+hmm_lnl <- run_HMM(site_info = "i0.sitelh", "i0.alninfo")
+hmm_lnl$alignment_plot
+```
+
+The classification viterbi using posterior probabilities and likelihoods look identical. What happens if the iterations are increased?  
+
+```{r}
+hmm_lnl <- run_HMM(site_info = "i0.sitelh", "i0.alninfo", iter = 10000)
+hmm_lnl$alignment_plot
+```
+
+Same.  
+
+### Summary of lnL HMM
+
+```{r}
+summary(hmm_lnl)
+```
+### Transition table
+```{r}
+hmm_lnl$hmm_transition_table
+```
+
+Output partitions.  
+```{r}
+save_partitioning_scheme(hmm_lnl, "i0_rates.nex")
+```
+
+
