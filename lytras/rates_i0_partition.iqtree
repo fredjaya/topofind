@@ -1,0 +1,265 @@
+IQ-TREE 2.2.0.7.mix COVID-edition built Aug 19 2022
+
+Partition file name: /home/fredjaya/GitHub/rec-mast/lytras/rates_i0_rates.nex
+Input file name: ../2207_lytras/78sarbeco_wgal_fn_gisaid.fas
+Type of analysis: ModelFinder + tree reconstruction
+Random seed number: 597186
+
+REFERENCES
+----------
+
+To cite IQ-TREE please use:
+
+Bui Quang Minh, Heiko A. Schmidt, Olga Chernomor, Dominik Schrempf,
+Michael D. Woodhams, Arndt von Haeseler, and Robert Lanfear (2020)
+IQ-TREE 2: New models and efficient methods for phylogenetic inference
+in the genomic era. Mol. Biol. Evol., in press.
+https://doi.org/10.1093/molbev/msaa015
+
+To cite ModelFinder please use: 
+
+Subha Kalyaanamoorthy, Bui Quang Minh, Thomas KF Wong, Arndt von Haeseler,
+and Lars S Jermiin (2017) ModelFinder: Fast model selection for
+accurate phylogenetic estimates. Nature Methods, 14:587–589.
+https://doi.org/10.1038/nmeth.4285
+
+Since you used partition models please also cite:
+
+Olga Chernomor, Arndt von Haeseler, and Bui Quang Minh (2016)
+Terrace aware data structure for phylogenomic inference from
+supermatrices. Syst. Biol., 65:997-1008.
+https://doi.org/10.1093/sysbio/syw037
+
+SEQUENCE ALIGNMENT
+------------------
+
+Input data: 78 taxa with 4 partitions and 30956 total sites (0% missing data)
+
+  ID	Type	Seq	Site	Unique	Infor	Invar	Const	Name
+   1	DNA	78	1511	307	78	1314	1314	class_1
+   2	DNA	78	18396	6202	6651	10763	10763	class_2
+   3	DNA	78	9150	4930	5122	3420	3420	class_3
+   4	DNA	78	1899	1575	1470	352	352	class_4
+
+Column meanings:
+  Unique: Number of unique site patterns
+  Infor:  Number of parsimony-informative sites
+  Invar:  Number of invariant sites
+  Const:  Number of constant sites (can be subset of invariant sites)
+
+ModelFinder
+-----------
+
+Best-fit model according to BIC: HKY+F+R2:class_1,GTR+F+I+R4:class_2,GTR+F+I+R4:class_3,GTR+F+I+R4:class_4
+
+List of best-fit models per partition:
+
+  ID  Model                  LogL         AIC      w-AIC        AICc     w-AICc         BIC      w-BIC
+   1  HKY+F+R2          -4034.328    8082.657 - 6.94e-310    8082.731 + 6.94e-310    8119.901 + 2.96e-323
+   2  GTR+F+I+R4      -169934.380  339900.761 - 6.94e-310  339900.790 + 6.94e-310  340025.879 + 2.96e-323
+   3  GTR+F+I+R4      -122293.534  244619.067 - 6.94e-310  244619.127 + 6.94e-310  244733.012 + 2.96e-323
+   4  GTR+F+I+R4       -49698.004   99428.008 - 6.94e-310   99428.297 + 6.94e-310   99516.793 + 2.96e-323
+
+AIC, w-AIC   : Akaike information criterion scores and weights.
+AICc, w-AICc : Corrected AIC scores and weights.
+BIC, w-BIC   : Bayesian information criterion scores and weights.
+
+Plus signs denote the 95% confidence sets.
+Minus signs denote significant exclusion.
+
+SUBSTITUTION PROCESS
+--------------------
+
+Edge-linked-proportional partition model with separate substitution models and separate rates across sites
+
+  ID  Model           Speed  Parameters
+   1  HKY+F+R2       0.1289  HKY{3.81929}+F{0.295496,0.190739,0.204114,0.309651}+R2{0.935097,0.450751,0.0649029,8.91338}
+   2  GTR+F+I+R4     0.7222  GTR{1.31665,7.37842,2.41999,0.553855,14.8577}+F{0.287245,0.199232,0.208688,0.304835}+I{0.508575}+R4{0.213291,0.417739,0.183628,1.88506,0.0866386,5.19616,0.00786692,14.5625}
+   3  GTR+F+I+R4     1.1816  GTR{1.36166,5.04142,1.65025,0.736702,7.93714}+F{0.285737,0.193758,0.207974,0.312531}+I{0.278486}+R4{0.309787,0.302618,0.262698,1.29967,0.129211,3.21558,0.0198169,7.53617}
+   4  GTR+F+I+R4     3.5090  GTR{1.96941,3.32532,1.57816,1.63297,4.17131}+F{0.291606,0.194799,0.182342,0.331253}+I{0.133281}+R4{0.125856,0.115047,0.176439,0.433561,0.328282,1.08673,0.236142,2.33871}
+
+MAXIMUM LIKELIHOOD TREE
+-----------------------
+
+Log-likelihood of the tree: -345717.1202 (s.e. 2222.2620)
+Unconstrained log-likelihood (without tree): -173436.9026
+Number of free parameters (#branches + #model parameters): 207
+Akaike information criterion (AIC) score: 691848.2404
+Corrected Akaike information criterion (AICc) score: 691851.0410
+Bayesian information criterion (BIC) score: 693574.6871
+
+Total tree length (sum of branch lengths): 3.8358
+Sum of internal branch lengths: 2.2168 (57.7922% of tree length)
+
+WARNING: 1 near-zero internal branches (<0.0000) should be treated with caution
+         Such branches are denoted by '**' in the figure below
+
+NOTE: Tree is UNROOTED although outgroup taxon 'RpShaanxi2011|JX993987' is drawn at root
+
++--RpShaanxi2011|JX993987
+|
+|     +--HuB2013|KJ473814
+|  +--|
+|  |  |  +--279_2005|DQ648857
+|  |  +--|
+|  |     +--Rm1|DQ412043
++--|
+|  |     +--Longquan_140|KF294457
+|  |  +--|
+|  |  |  |           +**HKU3-1|DQ022305
+|  |  |  |        +--|
+|  |  |  |        |  +**HKU3-3|DQ084200
+|  |  |  |     +--|
+|  |  |  |     |  |  +--HKU3-2|DQ084199
+|  |  |  |     |  +--|
+|  |  |  |     |     |     +--HKU3-4|GQ153539
+|  |  |  |     |     |  +--|
+|  |  |  |     |     |  |  +--HKU3-6|GQ153541
+|  |  |  |     |     +--|
+|  |  |  |     |        |  +--HKU3-5|GQ153540
+|  |  |  |     |        +--|
+|  |  |  |     |           |        +--HKU3-10|GQ153545
+|  |  |  |     |           |     +--|
+|  |  |  |     |           |     |  +**HKU3-9|GQ153544
+|  |  |  |     |           |  +--|
+|  |  |  |     |           |  |  +--HKU3-11|GQ153546
+|  |  |  |     |           +--|
+|  |  |  |     |              +--HKU3-13|GQ153548
+|  |  |  |  +--|
+|  |  |  |  |  +--HKU3-12|GQ153547
+|  |  |  +--|
+|  |  |     |  +--HKU3-7|GQ153542
+|  |  |     +--|
+|  |  |        +--HKU3-8|GQ153543
+|  +--|
+|     |              +--GX2013|KJ473815
+|     |           +--|
+|     |           |  +--Rp3|DQ071615
+|     |        +--|
+|     |        |  |                       +--Rf4092|KY417145
+|     |        |  |                    +--|
+|     |        |  |                    |  +--F46|KU973692
+|     |        |  |                 +--|
+|     |        |  |                 |  |  +--YN2013|KJ473816
+|     |        |  |                 |  +--|
+|     |        |  |                 |     |  +--Anlong-103|KY770858
+|     |        |  |                 |     +--|
+|     |        |  |                 |        +--Anlong-112|KY770859
+|     |        |  |              +--|
+|     |        |  |              |  |  +--YNLF_31C|KP886808
+|     |        |  |              |  +--|
+|     |        |  |              |     +--YNLF_34C|KP886809
+|     |        |  |           +--|
+|     |        |  |           |  |        +--Rs4231|KY417146
+|     |        |  |           |  |     +--|
+|     |        |  |           |  |     |  |  +--WIV16|KT444582
+|     |        |  |           |  |     |  +--|
+|     |        |  |           |  |     |     +--Rs4874|KY417150
+|     |        |  |           |  |  +--|
+|     |        |  |           |  |  |  +--HSZ-Cc|AY394995
+|     |        |  |           |  +--|
+|     |        |  |           |     |     +--YN2018B|MK211376
+|     |        |  |           |     |  +--|
+|     |        |  |           |     |  |  |  +--Rs7327|KY417151
+|     |        |  |           |     |  |  +--|
+|     |        |  |           |     |  |     +--Rs9401|KY417152
+|     |        |  |           |     +--|
+|     |        |  |           |        |     +--RsSHC014|KC881005
+|     |        |  |           |        |  +--|
+|     |        |  |           |        |  |  +--Rs4084|KY417144
+|     |        |  |           |        +--|
+|     |        |  |           |           |  +--Rs3367|KC881006
+|     |        |  |           |           +--|
+|     |        |  |           |              +--WIV1|KF367457
+|     |        |  |        +--|
+|     |        |  |        |  |     +--YN2018D|MK211378
+|     |        |  |        |  |  +--|
+|     |        |  |        |  |  |  |  +--Rs4081|KY417143
+|     |        |  |        |  |  |  +--|
+|     |        |  |        |  |  |     +--Rs4255|KY417149
+|     |        |  |        |  +--|
+|     |        |  |        |     +--Rs672|FJ588686
+|     |        |  |     +--|
+|     |        |  |     |  |  +--Rs4237|KY417147
+|     |        |  |     |  +--|
+|     |        |  |     |     +--Rs4247|KY417148
+|     |        |  |  +--|
+|     |        |  |  |  |  +--YN2018C|MK211377
+|     |        |  |  |  +--|
+|     |        |  |  |     +--As6526|KY417142
+|     |        |  +--|
+|     |        |     +--YN2018A|MK211375
+|     |     +--|
+|     |     |  |  +---LYRa11|KF569996
+|     |     |  +--|
+|     |     |     +--Yunnan2011|JX993988
+|     |  +--|
+|     |  |  +---SC2018|MK211374
+|     +--|
+|        |                                            +--CoVZC45|MG772933
+|        |                                        +---|
+|        |                                        |   +--CoVZXC21|MG772934
+|        |                                     +--|
+|        |                                     |  +--PrC31|MW703458
+|        |                                  +--|
+|        |                                  |  +--RpYN06|MZ081381
+|        |                               +--|
+|        |                               |  |  +--RmYN02|EPI_ISL_412977
+|        |                               |  +--|
+|        |                               |     +--RacCS203|MW251308
+|        |                            +--|
+|        |                            |  |  +--Wuhan-Hu-1|MN908947
+|        |                            |  +--|
+|        |                            |     +--RaTG13|MN996532
+|        |                         +--|
+|        |                         |  |  +**RShSTT182|EPI_ISL_852604
+|        |                         |  +--|
+|        |                         |     +--RShSTT200|EPI_ISL_852605
+|        |                     +---|
+|        |                     |   +---Pangolin-CoV|EPI_ISL_410721
+|        |                  +--|
+|        |                  |  |         +--P4L|MT040333
+|        |                  |  +---------|
+|        |                  |            |     +--P5L|MT040335
+|        |                  |            |  +--|
+|        |                  |            |  |  +--P1E|MT040334
+|        |                  |            +--|
+|        |                  |               |  +--P5E|MT040336
+|        |                  |               +**|
+|        |                  |                  +--P2V|MT072864
+|        |              +---|
+|        |              |   |                                      +--RsYN04|MZ081380
+|        |              |   |                                   +--|
+|        |              |   |                                   |  +--RmYN08|MZ081378
+|        |              |   +-----------------------------------|
+|        |              |                                       +--RmYN05|MZ081376
+|        |      +-------|
+|        |      |       +-----------------Rc-o319|LC556375
+|        +------|
+|               |            +----------------BtKY72|KY352407
+|               +------------|
+|                            +-------------BM48-31|NC_014470
+|
+|      +--JL2012|KJ473811
+|   +--|
+|   |  +--JTMC15|KU182964
++---|
+    |        +--HeB2013|KJ473812
+    |     +--|
+    |     |  +--SX2013|KJ473813
+    |  +--|
+    |  |  +--Jiyuan-84|KY770860
+    +--|
+       +--Rf1|DQ412042
+
+Tree in newick format:
+
+(RpShaanxi2011|JX993987:0.0463757131,((HuB2013|KJ473814:0.0430585007,(279_2005|DQ648857:0.0015778181,Rm1|DQ412043:0.0030700252):0.0475808030):0.0140096930,((Longquan_140|KF294457:0.0412182855,((((HKU3-1|DQ022305:0.0000010015,HKU3-3|DQ084200:0.0000010015):0.0003936114,(HKU3-2|DQ084199:0.0001352550,((HKU3-4|GQ153539:0.0002175785,HKU3-6|GQ153541:0.0002517445):0.0000673735,(HKU3-5|GQ153540:0.0000342047,(((HKU3-10|GQ153545:0.0000343047,HKU3-9|GQ153544:0.0000010015):0.0002023612,HKU3-11|GQ153546:0.0002023044):0.0001684019,HKU3-13|GQ153548:0.0005724573):0.0002350372):0.0001512614):0.0002186986):0.0001114531):0.0050636638,HKU3-12|GQ153547:0.0051228095):0.0080309849,(HKU3-7|GQ153542:0.0001875493,HKU3-8|GQ153543:0.0002840678):0.0135181943):0.0108117571):0.0561025089,(((((GX2013|KJ473815:0.0428120149,Rp3|DQ071615:0.0263340821):0.0078365480,((((((((Rf4092|KY417145:0.0075367370,F46|KU973692:0.0573362621):0.0188267385,(YN2013|KJ473816:0.0109186793,(Anlong-103|KY770858:0.0003719672,Anlong-112|KY770859:0.0001336806):0.0127309277):0.0106001697):0.0050515316,(YNLF_31C|KP886808:0.0003588340,YNLF_34C|KP886809:0.0005486537):0.0576362917):0.0099210960,(((Rs4231|KY417146:0.0100782780,(WIV16|KT444582:0.0002677620,Rs4874|KY417150:0.0003640655):0.0069600460):0.0046393537,HSZ-Cc|AY394995:0.0338351692):0.0045714533,((YN2018B|MK211376:0.0078547039,(Rs7327|KY417151:0.0052265496,Rs9401|KY417152:0.0033149991):0.0032611438):0.0018920310,((RsSHC014|KC881005:0.0024866890,Rs4084|KY417144:0.0099077051):0.0050580538,(Rs3367|KC881006:0.0002642807,WIV1|KF367457:0.0006742062):0.0044614564):0.0032947870):0.0079261293):0.0260253946):0.0028093349,((YN2018D|MK211378:0.0098950309,(Rs4081|KY417143:0.0065595041,Rs4255|KY417149:0.0076265056):0.0035269535):0.0016861428,Rs672|FJ588686:0.0158941592):0.0061926162):0.0042964289,(Rs4237|KY417147:0.0074493903,Rs4247|KY417148:0.0103742867):0.0053654343):0.0006642380,(YN2018C|MK211377:0.0059081682,As6526|KY417142:0.0049097106):0.0052094292):0.0049995361,YN2018A|MK211375:0.0122219058):0.0104165122):0.0108070547,(LYRa11|KF569996:0.0660576437,Yunnan2011|JX993988:0.0307527878):0.0394933255):0.0180856336,SC2018|MK211374:0.0622339918):0.0164101562,(((((((((((CoVZC45|MG772933:0.0139492305,CoVZXC21|MG772934:0.0140861994):0.0686581063,PrC31|MW703458:0.0187543995):0.0528379867,RpYN06|MZ081381:0.0135718752):0.0138624843,(RmYN02|EPI_ISL_412977:0.0205482303,RacCS203|MW251308:0.0559675066):0.0244190987):0.0182107759,(Wuhan-Hu-1|MN908947:0.0176855203,RaTG13|MN996532:0.0249456547):0.0075139177):0.0100857241,(RShSTT182|EPI_ISL_852604:0.0000228100,RShSTT200|EPI_ISL_852605:0.0000777680):0.0570310653):0.0352290378,Pangolin-CoV|EPI_ISL_410721:0.0704087640):0.0596222146,(P4L|MT040333:0.0005078374,((P5L|MT040335:0.0001341048,P1E|MT040334:0.0005345803):0.0001339171,(P5E|MT040336:0.0005012097,P2V|MT072864:0.0006023480):0.0000025382):0.0000591581):0.1517457713):0.0420593117,((RsYN04|MZ081380:0.0000667524,RmYN08|MZ081378:0.0001669096):0.0001337608,RmYN05|MZ081376:0.0000328330):0.5385649328):0.0656386652,Rc-o319|LC556375:0.2755707172):0.1195673021,(BtKY72|KY352407:0.2543052556,BM48-31|NC_014470:0.2116966768):0.2019199365):0.1118306261):0.0147543335):0.0074610276):0.0195521354,((JL2012|KJ473811:0.0013868865,JTMC15|KU182964:0.0015441061):0.0317713414,(((HeB2013|KJ473812:0.0006696814,SX2013|KJ473813:0.0019326185):0.0021464491,Jiyuan-84|KY770860:0.0058066386):0.0050394573,Rf1|DQ412042:0.0102748291):0.0092100045):0.0707940553);
+
+TIME STAMP
+----------
+
+Date and time: Thu Aug 25 19:07:32 2022
+Total CPU time used: 713.971 seconds (0h:11m:53s)
+Total wall-clock time used: 265.088 seconds (0h:4m:25s)
+

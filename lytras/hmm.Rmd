@@ -19,13 +19,15 @@ library(MixtureModelHMM)
 library(ggplot2)
 ```
 
+## 1. Initial single tree 
+
 ## Plotting raw data  
 
 ```{r}
-plot_scatter("i0.siteprob") +
+plot_scatter("rates_i0.siteprob") +
   labs(y = "Posterior probability")
 
-plot_scatter("i0.sitelh") +
+plot_scatter("rates_i0.sitelh") +
   labs(y = "lnL")
 ```
 
@@ -37,20 +39,20 @@ This data is suitable for analysis with a HMM.
 
 ### With posterior probabilities
 ```{r}
-hmm_prob <- run_HMM(site_info = "i0.siteprob", "i0.alninfo")
+hmm_prob <- run_HMM(site_info = "rates_i0.siteprob", "rates_i0.alninfo")
 hmm_prob$alignment_plot
 ```
 
 ### With site likelihoods  
 ```{r}
-hmm_lnl <- run_HMM(site_info = "i0.sitelh", "i0.alninfo")
+hmm_lnl <- run_HMM(site_info = "rates_i0.sitelh", "rates_i0.alninfo")
 hmm_lnl$alignment_plot
 ```
 
 The classification viterbi using posterior probabilities and likelihoods look identical. What happens if the iterations are increased?  
 
 ```{r}
-hmm_lnl <- run_HMM(site_info = "i0.sitelh", "i0.alninfo", iter = 10000)
+hmm_lnl <- run_HMM(site_info = "rates_i0.sitelh", "rates_i0.alninfo", iter = 10000)
 hmm_lnl$alignment_plot
 ```
 
@@ -68,7 +70,18 @@ hmm_lnl$hmm_transition_table
 
 Output partitions.  
 ```{r}
-save_partitioning_scheme(hmm_lnl, "i0_rates.nex")
+save_partitioning_scheme(hmm_lnl, "rates_i0_rates.nex")
 ```
+# 2. MAST +T
 
+```{r}
+plot_scatter("rates_i0_mast_T.siteprob") +
+  labs(y = "Posterior probability")
 
+plot_scatter("rates_i0_mast_T.sitelh") +
+  labs(y = "lnL")
+```
+```{r}
+hmm_lnl_mast <- run_HMM(site_info = "rates_i0_mast_T.sitelh", "rates_i0_mast_T.alninfo")
+hmm_lnl_mast$alignment_plot
+```

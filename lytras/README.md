@@ -16,9 +16,9 @@ iqtree-2.2.0.7.mix-Linux/bin/iqtree2 -s ../2207_lytras/78sarbeco_wgal_fn_gisaid.
 iqtree-2.2.0.7.mix-Linux/bin/iqtree2 -s ../2207_lytras/78sarbeco_wgal_fn_gisaid.fas -te rates_i0_hmmclasses.treefile -pre rates_i0_mast -m"TMIX{GTR+FO+G,GTR+FO+G,GTR+FO+G,GTR+FO+G}+TR" -nt AUTO
 ```
 
-Run merged partition model using HMM class boundaries to compare with MAST:  
+Run best partition model using HMM class boundaries to compare with MAST:  
 ```
-iqtree-2.2.0.7.mix-Linux/bin/iqtree2 -s ../2207_lytras/78sarbeco_wgal_fn_gisaid.fas -p i0_rates.nex -m MFP+MERGE -pre rates_i0_partition -alninfo -wslr -wspr -nt AUTO
+iqtree-2.2.0.7.mix-Linux/bin/iqtree2 -s ../2207_lytras/78sarbeco_wgal_fn_gisaid.fas -p rates_i0_rates.nex -m MFP+MERGE -pre rates_i0_partition -alninfo -wslmr -wspmr -nt AUTO
 ```
 
 ## BIC scores  
@@ -27,5 +27,6 @@ iqtree-2.2.0.7.mix-Linux/bin/iqtree2 -s ../2207_lytras/78sarbeco_wgal_fn_gisaid.
 | -------------- | ----------- |
 | Single tree    | 699483.2846 |
 | Post-HMM trees | 670486.8827 |
+| Partition      | 693574.6871 |
 | MAST +T        | 669540.3526 |
-| Partition      |             |
+| MAST +TR       | 672496.2097 |
