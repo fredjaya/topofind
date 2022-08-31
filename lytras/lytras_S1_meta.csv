@@ -1,0 +1,79 @@
+Name,Header,Genus,Species,Country,LOCATION,Clade,ACC,GISAID acknowledgments,GARD analysis
+279_2005,279_2005|DQ648857,Rhinolophus,Rhinolophus_macrotis,China – Central,Hubei,non-nCoV,DQ648857,,
+Anlong-103,Anlong-103|KY770858,Rhinolophus,Rhinolophus_sinicus,China – South,Guizhou,non-nCoV,KY770858,,
+Anlong-112,Anlong-112|KY770859,Rhinolophus,Rhinolophus_sinicus,China – South,Guizhou,non-nCoV,KY770859,,
+As6526,As6526|KY417142,Aselliscus,Aselliscus_stoliczkanus,China – Southwest,Yunnan,non-nCoV,KY417142,,
+BM48-31,BM48-31|NC_014470,Rhinolophus,Rhinolophus_blasii,Bulgaria,Bulgaria,outgroup,NC_014470,,
+BtKY72,BtKY72|KY352407,Rhinolophus,,Africa,Kenya,outgroup,KY352407,,
+CoVZC45,CoVZC45|MG772933,Rhinolophus,Rhinolophus_pusillus,China – East,Zhejiang,nCoV,MG772933,,
+CoVZXC21,CoVZXC21|MG772934,Rhinolophus,Rhinolophus_pusillus,China – East,Zhejiang,nCoV,MG772934,,Y
+F46,F46|KU973692,Rhinolophus,Rhinolophus_pusillus,China – Southwest,Yunnan,non-nCoV,KU973692,,Y
+GX2013,GX2013|KJ473815,Rhinolophus,Rhinolophus_sinicus,China – South,Guangxi,non-nCoV,KJ473815,,
+HeB2013,HeB2013|KJ473812,Rhinolophus,Rhinolophus_ferrumequinum,China – North,Hebei,non-nCoV,KJ473812,,
+HKU3-1,HKU3-10|GQ153545,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,DQ022305,,Y
+HKU3-10,HKU3-11|GQ153546,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153545,,
+HKU3-11,HKU3-12|GQ153547,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153546,,
+HKU3-12,HKU3-13|GQ153548,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153547,,
+HKU3-13,HKU3-1|DQ022305,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153548,,
+HKU3-2,HKU3-2|DQ084199,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,DQ084199,,
+HKU3-3,HKU3-3|DQ084200,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,DQ084200,,
+HKU3-4,HKU3-4|GQ153539,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153539,,
+HKU3-5,HKU3-5|GQ153540,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153540,,
+HKU3-6,HKU3-6|GQ153541,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153541,,
+HKU3-7,HKU3-7|GQ153542,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153542,,
+HKU3-8,HKU3-8|GQ153543,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153543,,
+HKU3-9,HKU3-9|GQ153544,Rhinolophus,Rhinolophus_sinicus,China – South,Guangdong,non-nCoV,GQ153544,,
+HSZ-Cc,HSZ-Cc|AY394995,Homo,Homo_sapiens,China – South,Guangdong,non-nCoV,AY394995,,
+HuB2013,HuB2013|KJ473814,Rhinolophus,Rhinolophus_sinicus,China – Central,Hubei,non-nCoV,KJ473814,,
+Jiyuan-84,Jiyuan-84|KY770860,Rhinolophus,Rhinolophus_ferrumequinum,China – Central,Henan,non-nCoV,KY770860,,
+JL2012,JL2012|KJ473811,Rhinolophus,Rhinolophus_ferrumequinum,China – Northeast,Jilin,non-nCoV,KJ473811,,Y
+JTMC15,JTMC15|KU182964,Rhinolophus,Rhinolophus_ferrumequinum,China – Northeast,Jilin,non-nCoV,KU182964,,Y
+Longquan_140,Longquan_140|KF294457,Rhinolophus,Rhinolophus_monoceros,China – East,Zhejiang,non-nCoV,KF294457,,Y
+LYRa11,LYRa11|KF569996,Rhinolophus,Rhinolophus_affinis,China – Southwest,Yunnan,non-nCoV,KF569996,,Y
+P1E,P1E|MT040334,Manis,Manis_javanica,China – South,Guangxi,non-nCoV,MT040334,,Y
+P2V,P2V|MT072864,Manis,Manis_javanica,China – South,Guangxi,non-nCoV,MT072864,,
+P4L,P4L|MT040333,Manis,Manis_javanica,China – South,Guangxi,non-nCoV,MT040333,,
+P5E,P5E|MT040336,Manis,Manis_javanica,China – South,Guangxi,non-nCoV,MT040336,,
+P5L,P5L|MT040335,Manis,Manis_javanica,China – South,Guangxi,non-nCoV,MT040335,,
+Pangolin-CoV,Pangolin-CoV|EPI_ISL_410721,Manis,Manis_javanica,China – South,Guangdong,nCoV,EPI_ISL_410721,Yongyi Shen; Lihua Xiao; Wu Chen,Y
+PrC31,PrC31|MW703458,Rhinolophus,,China – Southwest,Yunnan,nCoV,MW703458,,Y
+RacCS203,RacCS203|MW251308,Rhinolophus,Rhinolophus_acuminatus,Thailand,Thailand,nCoV,MW251308,,Y
+RaTG13,RaTG13|MN996532,Rhinolophus,Rhinolophus_affinis,China – Southwest,Yunnan,nCoV,MN996532, ,Y
+Rc-o319,Rc-o319|LC556375,Rhinolophus,Rhinolophus_cornutus,Japan,Japan,nCoV,LC556375,,Y
+Rf1,Rf1|DQ412042,Rhinolophus,Rhinolophus_ferrumequinum,China – Central,Hubei,non-nCoV,DQ412042,,
+Rf4092,Rf4092|KY417145,Rhinolophus,Rhinolophus_ferrumequinum,China – Southwest,Yunnan,non-nCoV,KY417145,,Y
+Rm1,Rm1|DQ412043,Rhinolophus,Rhinolophus_macrotis,China – Central,Hubei,non-nCoV,DQ412043,,
+RmYN02,RmYN02|EPI_ISL_412977,Rhinolophus,Rhinolophus_malayanus,China – Southwest,Yunnan,nCoV,EPI_ISL_412977,Weifeng Shi; Tao Hu; Hong Zhou; Juan Li; Xing Chen; Alice Catherine Hughes; Yuhai Bi,Y
+RmYN05,RmYN05|MZ081376,Rhinolophus,Rhinolophus_malayanus,China – Southwest,Yunnan,nCoV,MZ081376,,
+RmYN08,RmYN08|MZ081378,Rhinolophus,Rhinolophus_malayanus,China – Southwest,Yunnan,nCoV,MZ081378,,
+Rp3,Rp3|DQ071615,Rhinolophus,Rhinolophus_pearsoni,China – South,Guangxi,non-nCoV,DQ071615,,
+RpShaanxi2011,RpShaanxi2011|JX993987,Rhinolophus,Rhinolophus_pusillus,China – North,Shanxi,non-nCoV,JX993987,,Y
+RpYN06,RpYN06|MZ081381,Rhinolophus,Rhinolophus_pusillus,China – Southwest,Yunnan,nCoV,MZ081381,,Y
+Rs3367,Rs3367|KC881006,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KC881006,,
+Rs4081,Rs4081|KY417143,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KY417143,,
+Rs4084,Rs4084|KY417144,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KY417144,,
+Rs4231,Rs4231|KY417146,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KY417146,,
+Rs4237,Rs4237|KY417147,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KY417147,,Y
+Rs4247,Rs4247|KY417148,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KY417148,,
+Rs4255,Rs4255|KY417149,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KY417149,,
+Rs4874,Rs4874|KY417150,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KY417150,,
+Rs672,Rs672|FJ588686,Rhinolophus,Rhinolophus_sinicus,China – South,Guizhou,non-nCoV,FJ588686,,
+Rs7327,Rs7327|KY417151,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KY417151,,
+Rs9401,Rs9401|KY417152,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KY417152,,
+RShSTT182,RShSTT182|EPI_ISL_852604,Rhinolophus,Rhinolophus_shameli,Cambodia,Cambodia,nCoV,EPI_ISL_852604,Vibol Hul; Deborah Delaune; Erik A Karlsson; Ou Tey Putita; Alexandre Hassanin; Artem Baidaliuk; Fabiana Gámbaro; Vuong Tan Tu; Lucy Keatts; Jonna Mazet; Christine Johnson; Philippe Buchy; Philippe Dussart; Tracey Goldstein; Etienne Simon-Lorière; Veasna Duong,Y
+RShSTT200,RShSTT200|EPI_ISL_852605,Rhinolophus,Rhinolophus_shameli,Cambodia,Cambodia,nCoV,EPI_ISL_852605,Vibol Hul; Deborah Delaune; Erik A Karlsson; Ou Tey Putita; Alexandre Hassanin; Artem Baidaliuk; Fabiana Gámbaro; Vuong Tan Tu; Lucy Keatts; Jonna Mazet; Christine Johnson; Philippe Buchy; Philippe Dussart; Tracey Goldstein; Etienne Simon-Lorière; Veasna Duong,
+RsSHC014,RsSHC014|KC881005,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KC881005,,
+RsYN04,RsYN04|MZ081380,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,nCoV,MZ081380,,Y
+SC2018,SC2018|MK211374,Rhinolophus,,China – Central,Hubei,non-nCoV,MN908947,,Y
+SX2013,SX2013|KJ473813,Rhinolophus,,China – Southwest,Sichuan,non-nCoV,MK211374,,
+WIV1,WIV1|KF367457,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KF367457,,
+WIV16,WIV16|KT444582,Rhinolophus,Rhinolophus_ferrumequinum,China – North,Shanxi,non-nCoV,KJ473813,,
+SARS-CoV-2,Wuhan-Hu-1|MN908947,Homo,Homo_sapiens,China – Southwest,Yunnan,SARS-CoV-2,KT444582,,
+YN2013,YN2013|KJ473816,Rhinolophus,Rhinolophus_sinicus,China – Southwest,Yunnan,non-nCoV,KJ473816,,
+YN2018A,YN2018A|MK211375,Rhinolophus,Rhinolophus_affinis,China – Southwest,Yunnan,non-nCoV,MK211375,,
+YN2018B,YN2018B|MK211376,Rhinolophus,Rhinolophus_affinis,China – Southwest,Yunnan,non-nCoV,MK211376,,
+YN2018C,YN2018C|MK211377,Rhinolophus,Rhinolophus_affinis,China – Southwest,Yunnan,non-nCoV,MK211377,,
+YN2018D,YN2018D|MK211378,Rhinolophus,Rhinolophus_affinis,China – Southwest,Yunnan,non-nCoV,MK211378,,
+YNLF_31C,YNLF_31C|KP886808,Rhinolophus,Rhinolophus_ferrumequinum,China – Southwest,Yunnan,non-nCoV,KP886808,,
+YNLF_34C,YNLF_34C|KP886809,Rhinolophus,Rhinolophus_ferrumequinum,China – Southwest,Yunnan,non-nCoV,KP886809,,
+Yunnan2011,Yunnan2011|JX993988,Chaerephon,Chaerephon_plicata,China – Southwest,Yunnan,non-nCoV,JX993988,,Y

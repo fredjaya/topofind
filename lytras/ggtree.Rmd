@@ -1,0 +1,103 @@
+---
+title: "lytras ggtree"
+author: "Fred Jaya"
+output: 
+   html_document:
+     theme: spacelab
+     code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = T,
+  warning = F, 
+  dev = 'svg',
+  fig.width = 8,
+  fig.path = "/home/fredjaya/GitHub/rec-mast/lytras/figs/")
+
+library(ggplot2)
+library(ggtree)
+library(dplyr)
+library(phytools)
+library(ape)
+```
+
+## Single tree
+```{r,fig.width=10}
+# Read in metadata from Lytras et al. (2022) Supp Table. 1
+meta <- read.csv("lytras_S1_meta.csv")
+
+# Read in single tree with best model estimated
+single <- ape::read.tree("rates_i0.treefile")
+
+# Shorten and clean tip names to match with metadata
+single$tip.label <- gsub("\\|.+" ,"", single$tip.label)
+single$tip.label <- gsub("Wuhan-Hu-1" ,"SARS-CoV-2", single$tip.label)
+
+# Root tree
+# Find root, try 149, 129
+# View(fortify(single)) 
+single_root <- root(phy = single, node = 129, resolve.root = T)
+```
+
+```{r}
+ggtree(single_root, ladderize = F) %<+%
+  meta +
+  geom_tippoint(aes(shape = Genus, colour = Country), size = 2) +
+  geom_tiplab(aes(colour = Country)) +
+  geom_rootedge(rootedge = 0.01) +
+  scale_shape_manual(values = c(17,18,15,20,1)) +
+  theme_tree2() +
+  theme(legend.position = "bottom") 
+```
+
+## MAST +T
+```{r, fig.width=10}
+mast_t <- read.tree("rates_i0_mast_T.treefile")
+
+for (i in 1:length(mast_t)) {
+  mast_t[[i]]$tip.label <- gsub("\\|.+" ,"", mast_t[[i]]$tip.label)
+  mast_t[[i]]$tip.label <- gsub("Wuhan-Hu-1","SARS-CoV-2", mast_t[[i]]$tip.label)
+}
+```
+
+```{r}
+d1 <- fortify(root(mast_t[[1]], outgroup = c("BtKY72", "BM48-31")), ladderize = F) %>% mutate(RHAS = 1)
+d2 <- fortify(root(mast_t[[2]], outgroup = c("BtKY72", "BM48-31")), ladderize = F) %>% mutate(x = x + max(d1$x) + 1) %>% mutate(RHAS = 2)
+d3 <- fortify(root(mast_t[[3]], outgroup = c("BtKY72", "BM48-31")), ladderize = F) %>% mutate(x = x + max(d2$x) + 1) %>% mutate(RHAS = 3)
+d4 <- fortify(root(mast_t[[4]], outgroup = c("BtKY72", "BM48-31")), ladderize = F) %>% mutate(x = x + max(d3$x) + 1) %>% mutate(RHAS = 4)
+
+dd <- bind_rows(d1,d2,d3,d4) %>%
+  left_join(meta, by = c("label" = "Name"))
+
+rm(d1, d2, d3, d4)
+```
+
+```{r}
+ggtree(dd %>% filter(RHAS == 1)) +
+  geom_tree(dd %>% filter(RHAS == 2)) +
+  geom_tree(dd %>% filter(RHAS == 3)) +
+  geom_tree(dd %>% filter(RHAS == 4)) +
+  geom_tiplab(data = dd %>% filter(RHAS == 1), aes(colour = Country), size = 2) +
+  geom_tiplab(data = dd %>% filter(RHAS == 2), aes(colour = Country), size = 2) +
+  geom_tiplab(data = dd %>% filter(RHAS == 3), aes(colour = Country), size = 2) +
+  geom_tiplab(data = dd %>% filter(RHAS == 4), aes(colour = Country), size = 2) +
+  geom_tippoint(data = dd %>% filter(RHAS == 1), aes(shape = Genus, colour = Country)) +
+  geom_tippoint(data = dd %>% filter(RHAS == 2), aes(shape = Genus, colour = Country)) +
+  geom_tippoint(data = dd %>% filter(RHAS == 3), aes(shape = Genus, colour = Country)) +
+  geom_tippoint(data = dd %>% filter(RHAS == 4), aes(shape = Genus, colour = Country)) +
+  scale_shape_manual(values = c(17,18,15,20,1)) +
+  geom_line(data = dd %>% filter(!is.na(label)), aes(group = label, colour = Country), size = 0.1) 
+```
+
+```{r}
+ggtree(dd %>% filter(RHAS == 1)) +
+  geom_tree(dd %>% filter(RHAS == 2)) +
+  geom_tree(dd %>% filter(RHAS == 3)) +
+  geom_tree(dd %>% filter(RHAS == 4)) +
+  geom_tiplab(data = dd %>% filter(RHAS == 1), aes(colour = Clade), size = 2) +
+  geom_tiplab(data = dd %>% filter(RHAS == 2), aes(colour = Clade), size = 2) +
+  geom_tiplab(data = dd %>% filter(RHAS == 3), aes(colour = Clade), size = 2) +
+  geom_tiplab(data = dd %>% filter(RHAS == 4), aes(colour = Clade), size = 2) +
+  geom_line(data = dd %>% filter(!is.na(label)), aes(group = label, colour = Clade), size = 0.1) 
+```
