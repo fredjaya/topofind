@@ -11,68 +11,117 @@ output:
 knitr::opts_chunk$set(
   echo = T,
   warning = F, 
-  dev = 'svg',
+  dev = 'png',
   fig.width = 8,
   fig.path = "/home/fredjaya/GitHub/rec-mast/lytras/figs/")
 
 library(MixtureModelHMM)
 library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(flextable)
 ```
 
-## 1. Initial single tree 
+## Initial single tree 
 
-## Plotting raw data  
+```{r data_prep}
+site_prob <- read.table("rates_i0.siteprob", header = T)
+aln_info <- read.table("rates_i0.alninfo", header = T)  
 
-```{r}
-plot_scatter("rates_i0.siteprob") +
-  labs(y = "Posterior probability")
+sites <- 
+  site_prob %>%
+  left_join(aln_info, by = "Site") %>%
+  mutate(Stat = gsub("-", "All gaps", Stat)) %>%
+  mutate(Stat = gsub("C", "Constant", Stat)) %>%
+  mutate(Stat = gsub("c", "Constant+ambiguous", Stat)) %>%
+  mutate(Stat = gsub("I", "Informative", Stat)) %>%
+  mutate(Stat = gsub("U", "Uninformative", Stat))
 
-plot_scatter("rates_i0.sitelh") +
-  labs(y = "lnL")
+rm(site_prob, aln_info)
+
+sites_long <-
+  sites %>%
+  pivot_longer(p1:p4, names_to = "Rate class", values_to = "Posterior probability")
 ```
 
-There is a clear transition between classes `p1` to `p3`/`p2` at positions ~22k and 28k. Also around ~4k, the posterior probabilities have a stronger signal than the site likelihoods.  
+### Types of sites  
+```{r site_type_freq}
+n_sites <- nrow(sites)
+
+sites %>%
+  # Count number of site types
+  select(Stat) %>%
+  table() %>%
+  as.data.frame() %>%
+  rename("Site type" = '.', "Frequency" = Freq) %>%
+  # Add proportions
+  mutate(Proportion = round(Frequency / n_sites, 5)) %>%
+  flextable()
+```
+
+
+### Site probabilities  
+```{r singletree_siteprob_allsites}
+sites_long %>%  
+  ggplot(aes(x = Site, y = `Posterior probability`, colour = `Rate class`)) +
+  geom_point(size = 0.01, alpha = 0.1) +
+  geom_smooth(method = "gam", formula = y~s(x, bs = 'cs', fx = T, k = 50)) +
+  scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +
+  theme_light() +
+  labs(title = "All sites", subtitle = "n = 30,956")
+  
+#plot_scatter("rates_i0.siteprob") +
+#  labs(y = "Posterior probability")
+
+#plot_scatter("rates_i0.sitelh") +
+#  labs(y = "lnL")
+```
+
+```{r singletree_siteprob_infsites}
+sites_long %>%
+  filter(Stat == "Informative") %>%
+  ggplot(aes(x = Site, y = `Posterior probability`, colour = `Rate class`)) +
+  geom_point(size = 0.01, alpha = 0.2) +
+  geom_smooth(method = "gam", formula = y~s(x, bs = 'cs', fx = T, k = 50)) +
+  scale_x_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0)) +  
+  theme_light() +
+  labs(title = "Informative sites only", subtitle = "n = 13,321")
+```
+
+Class `p1` appears to be dominated by constant or uninformative sites. When only informative sites are retained, `p2` becomes the prevalent class. In fact, the `p1` kernel follows the same trend as the dominant `p2` class. There is a clear transition between classes `p2` to `p3`/`p4` at positions ~22k and 28k, and less so around ~4k. Class `p4` appears to have a low posterior probability across sites, until sites 22~28k.  
 
 This data is suitable for analysis with a HMM.  
 
 ## Running the HMM
 
-### With posterior probabilities
-```{r}
+```{r hmm_prep}
 hmm_prob <- run_HMM(site_info = "rates_i0.siteprob", "rates_i0.alninfo")
-hmm_prob$alignment_plot
-```
-
-### With site likelihoods  
-```{r}
 hmm_lnl <- run_HMM(site_info = "rates_i0.sitelh", "rates_i0.alninfo")
-hmm_lnl$alignment_plot
 ```
 
-The classification viterbi using posterior probabilities and likelihoods look identical. What happens if the iterations are increased?  
+### HMM summaries
 
-```{r}
-hmm_lnl <- run_HMM(site_info = "rates_i0.sitelh", "rates_i0.alninfo", iter = 10000)
-hmm_lnl$alignment_plot
-```
-
-Same.  
-
-### Summary of lnL HMM
-
-```{r}
+```{r hmm_summary}
+summary(hmm_prob)
 summary(hmm_lnl)
 ```
-### Transition table
-```{r}
-hmm_lnl$hmm_transition_table
-```
+Posterior probabilities and site likelihoods looks identical. Proceed with site likelihoods.
 
+```{r hmm_alnplot_lnl, fig.height=2}
+hmm_lnl$alignment_plot +
+  theme_light()
+```
+```{r hmm_lnl_stats}
+#hmm_lnl$hmm_transition_table
+#hmm_lnl$classification
+```
 Output partitions.  
 ```{r}
-save_partitioning_scheme(hmm_lnl, "rates_i0_rates.nex")
+#save_partitioning_scheme(hmm_lnl, "rates_i0_rates.nex")
 ```
-# 2. MAST +T
+# MAST +T
 
 ```{r}
 plot_scatter("rates_i0_mast_T.siteprob") +
@@ -81,6 +130,7 @@ plot_scatter("rates_i0_mast_T.siteprob") +
 plot_scatter("rates_i0_mast_T.sitelh") +
   labs(y = "lnL")
 ```
+
 ```{r}
 hmm_lnl_mast <- run_HMM(site_info = "rates_i0_mast_T.sitelh", "rates_i0_mast_T.alninfo")
 hmm_lnl_mast$alignment_plot

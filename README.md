@@ -7,9 +7,11 @@ R 4.1.2
 devtools 2.4.3  
 [MixtureModelHMM](https://github.com/roblanf/MixtureModelHMM)  
 
-## Workflow 
+## Using rate heterogeneity to delimit classes  
 
-Currently, use RHAS categories to delimit sites for input MAST topologies:  
+Currently, using RHAS categories to delimit sites for input MAST topologies:  
+
+### Workflow 
 
 ```mermaid  
 flowchart TD
@@ -20,8 +22,7 @@ flowchart TD
 	7 --> |Yes| 8b[8b. Repeat process on individual HMM class partitions] --> 2
 ```
 
-## Methods to delimit trees  
-- Rate heterogeneity classes  
+## Other methods to delimit trees  
 - Site likelihoods  
 - sCF  
 
