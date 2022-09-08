@@ -1,8 +1,8 @@
 nextflow.enable.dsl = 2
 
-process t1_r1 {
-    // Single-tree
-    // Estimate best substitution model without RHAS
+process t1_rk_modelfinder {
+    // t1: single-tree
+    // rk: use modelfinder to calculate fit of substitution model and k FreeRate categories 
     publishDir "${params.out}/${aln.simpleName}"
 
     input:
@@ -10,61 +10,49 @@ process t1_r1 {
         val nthreads
 
     output:
-        path '*.alninfo'
-        path '*.bionj'
-        path '*.ckp.gz'
-        path '*.iqtree'
-        path '*.log'
-        path '*.mldist'
         path '*.model.gz'
-        path '*.sitelh'
         path '*.treefile'
+        path '*.log'
+        path '*.iqtree'
+        path '*.ckp.gz'
 
     script:
     """
     iqtree2 -s ${aln} \
-        -pre t1_r1 \
-        -mrate E,F,I \
-        -alninfo -wslr -nt ${nthreads}
+        -pre t1_rk_mf \
+        -mrate E,I,R,I+R -m MF\
+        -nt ${nthreads}
     """
 
 }
 
-process t1_r2 {
+process parse_iqtree_models {
+    // Keep only ModelFinder results from .iqtree
+
+    publishDir "${params.out}/${aln.simpleName}"
 
     input:
-        path aln from params.aln
+        path aln
+        path iqtree
 
     output:
-        path '*.alninfo'
-        path '*.bionj'
-        path '*.ckp.gz'
-        path '*.iqtree'
-        path '*.log'
-        path '*.mldist'
-        path '*.model.gz'
-        path '*.sitelh'
-        path '*.siteprob'
-        path '*.treefile'
+        path models_only
 
-    script:
-    """
-    iqtree2 -s ${aln} \
-        -pre t1_r2 \
-        -alninfo -wslr -wspr -nt ${nthreads}
-    """
+    shell:
+    '''
+    (sed '0,/^List of models sorted by BIC scores: $/d' | sed '/^AIC, w-AIC   : Akaike information criterion scores and weights.$/,$d' | sed '/^$/d') < !{iqtree} > models_only
+    '''
 
 }
 
 workflow {
 
-    params.aln = "/home/fredjaya/Dropbox/treemix_rc/04_testing/mast_sim/data1a.fasta"
+    params.aln = "/home/fredjaya/GitHub/rec-mast/data/data1a.fasta"
     params.out = "/home/fredjaya/Dropbox/treemix_rc/04_testing/mast_sim/"
     params.nthreads = 1
     params.ncpus = 1
 
-    t1_r1(params.aln, params.nthreads)
-    println "${params.out}"
-
+    t1_rk_modelfinder(params.aln, params.nthreads)
+    parse_iqtree_models(params.aln, t1_rk_modelfinder.out[3])
 }
 
