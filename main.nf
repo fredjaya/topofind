@@ -52,15 +52,19 @@ process compare_models {
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
     input:
+        path aln
         path models_only
 
     output:
-        path models_parsed
-        path best_bic_rk
+        path "best_bic_per_rk.tsv"
+        path "models_parsed.tsv"
+        path "r2_lt_r1"
+        env BOOL
 
     script:
     """
-    Rscript parse_models.R ${models_only}
+    compare_models.R ${models_only}
+    BOOL=`cat r2_lt_r1`
     """
 }
 
@@ -73,8 +77,16 @@ workflow {
 
     t1_rk_modelfinder(params.aln, params.nthreads)
     keep_modelfinder(params.aln, t1_rk_modelfinder.out[2])
-    //parse_models()
+    compare_models(params.aln, keep_modelfinder.out)
 
     // Proceed if BIC(R2) < BIC(R1)
+    if (compare_models.out[3]) { 
+        println "R2 BIC is better than R1. Proceed with pipeline :)"
+    }
+    else { 
+        println "R2 BIC is poorer than R1. Terminiating." 
+        exit 0
+    }
+
 }
 
