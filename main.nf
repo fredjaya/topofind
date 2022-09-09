@@ -2,8 +2,8 @@ nextflow.enable.dsl = 2
 
 process t1_rk_modelfinder {
     // t1: single-tree
-    // rk: use modelfinder to calculate fit of substitution model and k FreeRate categories 
-    publishDir "${params.out}/${aln.simpleName}"
+    // rk: use modelfinder to calculate fit of substitution models and k FreeRate categories 
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
     input:
         path aln
@@ -26,23 +26,42 @@ process t1_rk_modelfinder {
 
 }
 
-process parse_iqtree_models {
-    // Keep only ModelFinder results from .iqtree
+process keep_modelfinder {
+    // Keep only ModelFinder results from .log
 
-    publishDir "${params.out}/${aln.simpleName}"
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
     input:
         path aln
-        path iqtree
+        path log
 
     output:
         path models_only
 
     shell:
     '''
-    (sed '0,/^List of models sorted by BIC scores: $/d' | sed '/^AIC, w-AIC   : Akaike information criterion scores and weights.$/,$d' | sed '/^$/d') < !{iqtree} > models_only
+    (sed '0,/^ModelFinder will test up to /d; /^Akaike Information Criterion:/,$d;' | tr -s ' ') < !{log} > models_only
     '''
 
+}
+
+process compare_models {
+    // Get overall best fitting model across all Rk
+    // Get best fitting model for each Rk
+
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+
+    input:
+        path models_only
+
+    output:
+        path models_parsed
+        path best_bic_rk
+
+    script:
+    """
+    Rscript parse_models.R ${models_only}
+    """
 }
 
 workflow {
@@ -53,6 +72,9 @@ workflow {
     params.ncpus = 1
 
     t1_rk_modelfinder(params.aln, params.nthreads)
-    parse_iqtree_models(params.aln, t1_rk_modelfinder.out[3])
+    keep_modelfinder(params.aln, t1_rk_modelfinder.out[2])
+    //parse_models()
+
+    // Proceed if BIC(R2) < BIC(R1)
 }
 
