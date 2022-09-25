@@ -1,8 +1,12 @@
 nextflow.enable.dsl = 2
 
 process t1_rk_modelfinder {
-    // t1: single-tree
-    // rk: use modelfinder to calculate fit of substitution models and k FreeRate categories 
+    /*
+     * t1: single-tree
+     * rk: use modelfinder to calculate fit of substitution models and 
+     *     k FreeRate categories
+     */
+
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
     input:
@@ -67,12 +71,61 @@ process compare_models {
     """ 
 }
 
+process t1_r2 {
+
+    /*
+     * t1: single-tree
+     * r2: k=2 rate categories
+     */
+
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+
+    input:
+        path aln
+        val nthreads
+        tuple val(rk), val(blah), val(bic)
+
+    output:
+        path '*.model.gz'
+        path '*.treefile'
+        path '*.log'
+        path '*.iqtree'
+        path '*.ckp.gz'
+
+    script:
+    """
+    iqtree2 -s ${aln} \
+        -pre t1_r2 \
+        -m ${blah}\
+        -nt ${nthreads}
+    """
+
+}
+
 def store_models(x) { 
     // Store number of FreeRate categories, model, and BIC scores
-    x.tokenize(" ").collate(3) 
+    x.tokenize(" ").collate(3)
+}
+
+def compare_bic(models_list, rk1, rk2) {
+    bic1 = models_list[rk1][2]
+    bic2 = models_list[rk2][2]
+    
+    if( bic2 < bic1 )
+        return true
+    else
+        return false
+}
+
+def access_models(x, y, z) {
+    x[y][z]
 }
 
 workflow {
+    
+    /*
+     * This workflow will only use R2 rate categories to to delimit sites 
+     */ 
 
     params.aln = "/home/fredjaya/GitHub/rec-mast/data/data1a.fasta"
     params.out = "/home/fredjaya/Dropbox/treemix_rc/04_testing/mast_sim/"
@@ -87,17 +140,23 @@ workflow {
         .set { models_list }
 
     models_list.view()
-    // Print the best BICs for each 
 
+    models_list
+        .map { models_list -> compare_bic(models_list, 0, 1) }
+        .view()
+    //t1_r2(params.aln, params.nthreads, models_list.out[2])
+    /*
+     Proceed if BIC(R2) < BIC(R1)
+    if (compare_models.out[3]) { 
+        println "R2 BIC is better than R1. Proceed with pipeline :)"
+    }
+    else { 
+        println "R2 BIC is poorer than R1. Terminiating." 
+        exit 0
+    }
+    */
 
-    // Proceed if BIC(R2) < BIC(R1)
-    //if (compare_models.out[3]) { 
-    //    println "R2 BIC is better than R1. Proceed with pipeline :)"
-    //}
-    //else { 
-    //    println "R2 BIC is poorer than R1. Terminiating." 
-    //    exit 0
-    //}
+    // For now, just proceed with R2
 
 }
 
