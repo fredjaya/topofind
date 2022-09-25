@@ -83,23 +83,48 @@ process t1_r2 {
     input:
         path aln
         val nthreads
-        tuple val(rk), val(blah), val(bic)
+        val model
 
     output:
-        path '*.model.gz'
         path '*.treefile'
         path '*.log'
         path '*.iqtree'
         path '*.ckp.gz'
+        path '*.alninfo'
+        path '*.sitelh'
+        path '*.siteprob'
 
     script:
     """
     iqtree2 -s ${aln} \
         -pre t1_r2 \
-        -m ${blah}\
+        -m ${model} \
+        -wslr -wspr -alninfo \
         -nt ${nthreads}
     """
 
+}
+
+process hmm_assign_sites {
+    // Assign sites to FreeRate classes with the HMM
+
+    publishDir "${params.out}/${aln.simpleName}",
+        saveAs: { filename -> "t1_r2$filename" },
+        mode: "copy"
+
+    input:
+        path aln
+        path sitelh 
+        path alninfo
+
+    output:
+        path "_site_assignment.png"
+        path ".partition"
+
+    script:
+    """
+    hmm_assign_sites.R ${sitelh} ${alninfo}
+    """ 
 }
 
 def store_models(x) { 
@@ -115,10 +140,6 @@ def compare_bic(models_list, rk1, rk2) {
         return true
     else
         return false
-}
-
-def access_models(x, y, z) {
-    x[y][z]
 }
 
 workflow {
@@ -139,24 +160,19 @@ workflow {
         .map { models_out -> store_models(models_out) }
         .set { models_list }
 
+    println("\nBest model per number of FreeRates categories:")
     models_list.view()
 
+    /*
+    // Compares BICs
     models_list
         .map { models_list -> compare_bic(models_list, 0, 1) }
         .view()
-    //t1_r2(params.aln, params.nthreads, models_list.out[2])
-    /*
-     Proceed if BIC(R2) < BIC(R1)
-    if (compare_models.out[3]) { 
-        println "R2 BIC is better than R1. Proceed with pipeline :)"
-    }
-    else { 
-        println "R2 BIC is poorer than R1. Terminiating." 
-        exit 0
-    }
     */
 
     // For now, just proceed with R2
 
+    t1_r2(params.aln, params.nthreads, models_list.map { x -> x[1][1] } )
+    hmm_assign_sites(params.aln, t1_r2.out[5], t1_r2.out[4])
 }
 

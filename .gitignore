@@ -2,3 +2,4 @@
 *.svg
 figs/
 *.swp
+*.Rhistory
