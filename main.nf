@@ -106,7 +106,7 @@ process t1_r2 {
 }
 
 process hmm_assign_sites {
-    // Assign sites to FreeRate classes with the HMM
+    // Assign sites to FreeRate classes or tree mixtures with the HMM
 
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
@@ -185,6 +185,77 @@ process iqtree_default {
     
 }
 
+process concatenate_trees {
+    // Combine trees from partitioned sites for MAST input
+
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+
+    input:
+        path aln
+        path "*.treefile"
+        val prefix
+
+    output:
+        path "*.treefile"
+
+    shell:
+    '''
+    cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
+    '''
+}
+
+process iqtree_mast_t_r2 {
+
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+
+    input:
+        path aln
+        val nthreads
+        path trees
+
+    output:
+        path '*.treefile'
+        path '*.log'
+        path '*.iqtree'
+        path '*.ckp.gz'
+        path '*.sitelh'
+        path '*.siteprob'
+        path '*.alninfo'
+
+    script:
+    """
+    iqtree2 -s ${aln} -pre ${trees.simpleName}_mast_t -nt ${nthreads} -te ${trees} \
+        -m "TMIX{GTR+FO+G,GTR+FO+G}+T" -nt ${nthreads} -wslr -wspr -alninfo
+    """
+    
+}
+
+process iqtree_mast_tr_r2 {
+
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+
+    input:
+        path aln
+        val nthreads
+        path trees
+
+    output:
+        path '*.treefile'
+        path '*.log'
+        path '*.iqtree'
+        path '*.ckp.gz'
+        path '*.sitelh'
+        path '*.siteprob'
+        path '*.alninfo'
+
+    script:
+    """
+    iqtree2 -s ${aln} -pre ${trees.simpleName}_mast_tr -nt ${nthreads} -te ${trees} \
+        -m "TMIX{GTR+FO+G,GTR+FO+G}+TR" -nt ${nthreads} -wslr -wspr -alninfo
+    """
+    
+}
+
 def store_models(x) { 
     // Store number of FreeRate categories, model, and BIC scores
     x.tokenize(" ").collate(3)
@@ -235,5 +306,10 @@ workflow {
     parse_partition(params.aln, hmm_assign_sites.out[1])
     split_aln(params.aln, parse_partition.out[0])
     iqtree_default(split_aln.out[0].flatten(), params.nthreads)
+    concatenate_trees(params.aln, iqtree_default.out[1].collect(), "class_1_2")
+    iqtree_mast_t_r2(params.aln, params.nthreads, concatenate_trees.out[0])
+    iqtree_mast_tr_r2(params.aln, params.nthreads, concatenate_trees.out[0])
+    //hmm_assign_sites(params.aln, iqtree_mast_t_r2.out[4], iqtree_mast_t_r2.out[6], "mast_t")
+    //hmm_assign_sites(params.aln, iqtree_mast_tr_r2.out[4], iqtree_mast_tr_r2.out[6], "mast_tr")
 }
 
