@@ -163,6 +163,28 @@ process split_aln {
     """
 }
 
+process iqtree_default {
+
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+
+    input:
+        path aln
+        val nthreads
+
+    output:
+        path '*.model.gz'
+        path '*.treefile'
+        path '*.log'
+        path '*.iqtree'
+        path '*.ckp.gz'
+
+    script:
+    """
+    iqtree2 -s ${aln} -pre ${aln.simpleName} -nt ${nthreads}
+    """
+    
+}
+
 def store_models(x) { 
     // Store number of FreeRate categories, model, and BIC scores
     x.tokenize(" ").collate(3)
@@ -177,8 +199,6 @@ def compare_bic(models_list, rk1, rk2) {
     else
         return false
 }
-
-
 
 workflow {
     
@@ -214,5 +234,6 @@ workflow {
     hmm_assign_sites(params.aln, t1_r2.out[5], t1_r2.out[4], "t1_r2")
     parse_partition(params.aln, hmm_assign_sites.out[1])
     split_aln(params.aln, parse_partition.out[0])
+    iqtree_default(split_aln.out[0].flatten(), params.nthreads)
 }
 
