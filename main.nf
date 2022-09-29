@@ -108,23 +108,56 @@ process t1_r2 {
 process hmm_assign_sites {
     // Assign sites to FreeRate classes with the HMM
 
-    publishDir "${params.out}/${aln.simpleName}",
-        saveAs: { filename -> "t1_r2$filename" },
-        mode: "copy"
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
     input:
         path aln
         path sitelh 
         path alninfo
+        val prefix
 
     output:
-        path "_site_assignment.png"
-        path ".partition"
+        path "*_site_assignment.png"
+        path "*.partition"
 
     script:
     """
-    hmm_assign_sites.R ${sitelh} ${alninfo}
+    hmm_assign_sites.R ${sitelh} ${alninfo} ${prefix}
     """ 
+}
+
+process parse_partition {
+    // Convert .nex partition files output by IQTREE to be compatible with AMAS
+
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+
+    input:
+        path aln
+        path partition
+
+    output:
+        path "*.partition_amas"
+
+    shell:
+    '''
+    echo !{partition}
+    sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
+    '''
+}
+
+process split_aln {
+    // Split alignment according to class partitions
+    
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+
+    input:
+        path aln
+        path
+
+    script:
+    """
+    python3 AMAS.py split -f ${partition} -
+    """
 }
 
 def store_models(x) { 
@@ -141,6 +174,8 @@ def compare_bic(models_list, rk1, rk2) {
     else
         return false
 }
+
+
 
 workflow {
     
@@ -173,6 +208,8 @@ workflow {
     // For now, just proceed with R2
 
     t1_r2(params.aln, params.nthreads, models_list.map { x -> x[1][1] } )
-    hmm_assign_sites(params.aln, t1_r2.out[5], t1_r2.out[4])
+    hmm_assign_sites(params.aln, t1_r2.out[5], t1_r2.out[4], "t1_r2")
+    hmm_assign_sites.out[1].view()
+    //parse_partition(params.aln, hmm_assign_sites.out[1])
 }
 
