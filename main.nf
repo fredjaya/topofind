@@ -152,11 +152,14 @@ process split_aln {
 
     input:
         path aln
-        path
+        path partition
+
+    output:
+        path "*.fas"
 
     script:
     """
-    python3 AMAS.py split -f ${partition} -
+    AMAS.py split -l ${partition} -i ${aln} -f fasta -d dna
     """
 }
 
@@ -209,7 +212,7 @@ workflow {
 
     t1_r2(params.aln, params.nthreads, models_list.map { x -> x[1][1] } )
     hmm_assign_sites(params.aln, t1_r2.out[5], t1_r2.out[4], "t1_r2")
-    hmm_assign_sites.out[1].view()
-    //parse_partition(params.aln, hmm_assign_sites.out[1])
+    parse_partition(params.aln, hmm_assign_sites.out[1])
+    split_aln(params.aln, parse_partition.out[0])
 }
 

@@ -6,14 +6,15 @@ nextflow 22.04.5
 iqtree 2.2.0.7.mix  
 R 4.1.2  
 devtools 2.4.3  
-[MixtureModelHMM](https://github.com/roblanf/MixtureModelHMM)  
+[MixtureModelHMM](https://github.com/fredjaya/MixtureModelHMM)  
 
 ## Using rate heterogeneity to delimit classes  
 
 Currently, using RHAS categories to delimit sites for input MAST topologies:  
 
-### Workflow 
+### Workflows
 
+Using the best number of FreeRate classes to delimit sites:  
 ```mermaid  
 flowchart TD
 	0[MSA] --> 1["1. Estimate the best-fitting (RHAS) model for a single unconstrained tree; output site lnLs"] --> 2[2. Run HMM to assign sites according to RHAS classes and save partitioning scheme] --> 3a[3a. Construct individual trees for each HMM class partition] & 3b[3b. Run merged partition model for comparison]
