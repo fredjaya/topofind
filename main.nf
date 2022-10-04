@@ -1,9 +1,11 @@
 nextflow.enable.dsl = 2
 
-params.aln = "/home/fredjaya/GitHub/rec-mast/data/data1a.fasta"
-params.out = "/home/fredjaya/Dropbox/treemix_rc/04_testing/mast_sim/"
+params.aln_path = "/home/fredjaya/Dropbox/treemix_rc/04_testing/rob_sims/test1.fa"
+params.out = "/home/fredjaya/Dropbox/treemix_rc/04_testing/rob_sims/"
 params.nthreads = 1
 params.ncpus = 1
+
+params.aln = Channel.fromPath(params.aln_path)
 
 def store_models(x) {
     // Store number of FreeRate categories, model, and BIC scores
@@ -40,6 +42,14 @@ workflow {
     /*
      * This workflow will only use R2 rate categories to to delimit sites 
      */ 
+    
+    log.info"""
+    base        = ${baseDir}
+    out         = ${params.out}
+    nthreads    = ${params.nthreads}
+    ncpus       = ${params.ncpus}
+    aln_path    = ${params.aln_path}
+    """
 
     t1_rk_modelfinder(params.aln, params.nthreads)
     keep_modelfinder(params.aln, t1_rk_modelfinder.out[2])
