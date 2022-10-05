@@ -1,6 +1,7 @@
 nextflow.enable.dsl = 2
 
 params.aln_path = "/home/fredjaya/Dropbox/treemix_rc/04_testing/rob_sims/test1.fa"
+params.aln_format = "fasta"
 params.out = "/home/fredjaya/Dropbox/treemix_rc/04_testing/rob_sims/"
 params.nthreads = 1
 params.ncpus = 1
@@ -49,6 +50,7 @@ workflow {
     nthreads    = ${params.nthreads}
     ncpus       = ${params.ncpus}
     aln_path    = ${params.aln_path}
+    aln_format  = ${params.aln_format}
     """
 
     t1_rk_modelfinder(params.aln, params.nthreads)
@@ -73,7 +75,7 @@ workflow {
     t1_r2(params.aln, params.nthreads, models_list.map { x -> x[1][1] } )
     hmm_assign_sites(params.aln, t1_r2.out[5], t1_r2.out[4], "t1_r2")
     parse_partition(params.aln, hmm_assign_sites.out[1])
-    split_aln(params.aln, parse_partition.out[0])
+    split_aln(params.aln, parse_partition.out[0], params.aln_format)
     iqtree_default(split_aln.out[0].flatten(), params.nthreads)
     concatenate_trees(params.aln, iqtree_default.out[1].collect(), "class_1_2")
     iqtree_mast_t_r2(params.aln, params.nthreads, concatenate_trees.out[0])

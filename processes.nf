@@ -154,13 +154,14 @@ process split_aln {
     input:
         path aln
         path partition
+        val aln_format
 
     output:
         path "*.fas"
 
     script:
     """
-    AMAS.py split -l ${partition} -i ${aln} -f fasta -d dna
+    AMAS.py split -l ${partition} -i ${aln} -f ${aln_format} -d dna
     """
 }
 
