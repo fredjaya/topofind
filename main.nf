@@ -32,10 +32,8 @@ include {
     split_aln; 
     iqtree_default;
     concatenate_trees; 
-    iqtree_mast_t_r2; 
     iqtree_mast_tr_r2; 
-    hmm_assign_sites as hmm_assign_sites2;
-    hmm_assign_sites as hmm_assign_sites3
+    hmm_assign_sites as hmm_assign_sites_mast_tr
 } from './processes.nf' 
 
 workflow {
@@ -78,9 +76,7 @@ workflow {
     split_aln(params.aln, parse_partition.out[0], params.aln_format)
     iqtree_default(split_aln.out[0].flatten(), params.nthreads)
     concatenate_trees(params.aln, iqtree_default.out[1].collect(), "class_1_2")
-    iqtree_mast_t_r2(params.aln, params.nthreads, concatenate_trees.out[0])
     iqtree_mast_tr_r2(params.aln, params.nthreads, concatenate_trees.out[0])
-    hmm_assign_sites2(params.aln, iqtree_mast_t_r2.out[4], iqtree_mast_t_r2.out[6], "mast_t")
-    hmm_assign_sites3(params.aln, iqtree_mast_tr_r2.out[4], iqtree_mast_tr_r2.out[6], "mast_tr")
+    hmm_assign_sites_mast_tr(params.aln, iqtree_mast_tr_r2.out[4], iqtree_mast_tr_r2.out[6], "mast_tr")
 }
 

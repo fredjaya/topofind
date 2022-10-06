@@ -190,6 +190,7 @@ process iqtree_default {
 process concatenate_trees {
     // Combine trees from partitioned sites for MAST input
 
+    debug true
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
     input:
@@ -198,11 +199,16 @@ process concatenate_trees {
         val prefix
 
     output:
-        path "*.treefile"
+        path "*.treefile", optional: true
 
     shell:
     '''
-    cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
+    if [ -f "*.treefile" ]; then
+        cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
+    else
+        echo "\nAll sites from !{aln} were assigned to a single class."
+        exit 0
+    fi
     '''
 }
 
