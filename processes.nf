@@ -130,6 +130,7 @@ process hmm_assign_sites {
 process parse_partition {
     // Convert .nex partition files output by IQTREE to be compatible with AMAS
 
+    debug true
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
     input:
@@ -137,12 +138,16 @@ process parse_partition {
         path partition
 
     output:
-        path "*.partition_amas"
+        path "*.partition_amas", optional: true
 
     shell:
     '''
-    echo !{partition}
-    sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
+    if ((`cat !{partition} | wc -l` == 4)); then
+        echo "\nAll sites in !{aln} were assigned to a single class."
+        exit 0
+    else
+        sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
+    fi
     '''
 }
 
@@ -199,16 +204,11 @@ process concatenate_trees {
         val prefix
 
     output:
-        path "*.treefile", optional: true
+        path "*.treefile"
 
     shell:
     '''
-    if [ -f "*.treefile" ]; then
-        cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
-    else
-        echo "\nAll sites from !{aln} were assigned to a single class."
-        exit 0
-    fi
+    cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
     '''
 }
 
