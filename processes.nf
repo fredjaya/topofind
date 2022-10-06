@@ -128,7 +128,12 @@ process hmm_assign_sites {
 }
 
 process parse_partition {
-    // Convert .nex partition files output by IQTREE to be compatible with AMAS
+    /* 
+     * Terminate pipeline if all sites were assigned to a single class
+     * i.e. one partition
+     * Otherwise, convert .nex partition files output by IQTREE to be 
+     * AMAS compliant
+     */
 
     debug true
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
@@ -173,6 +178,7 @@ process split_aln {
 process iqtree_default {
 
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+    errorStrategy { task.exitStatus == 2 ? "ignore" : "terminate" }
 
     input:
         path aln
@@ -204,11 +210,16 @@ process concatenate_trees {
         val prefix
 
     output:
-        path "*.treefile"
+        path "*.treefile", optional: true
 
     shell:
     '''
-    cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
+    if [ ! -f "*.treefile" ]; then
+        echo "\nOnly one tree was constructed for !{aln}. Are there enough informative sites in each partition?"
+        exit 0
+    else
+        cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
+    fi
     '''
 }
 
