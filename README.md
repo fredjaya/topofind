@@ -3,11 +3,11 @@ Recombination detection with mixtures across sites and trees
 
 ## Dependencies  
 nextflow 22.04.5  
-iqtree 2.2.0.7.mix  
+[iqtree 2.2.0.7.mix](https://github.com/iqtree/iqtree2/releases/tag/v2.2.0.7.mx)  
 R 4.1.2  
 devtools 2.4.3  
 [MixtureModelHMM](https://github.com/fredjaya/MixtureModelHMM)  
-AMAS
+[AMAS](https://github.com/marekborowiec/AMAS)  
 
 ## Simulations  
 

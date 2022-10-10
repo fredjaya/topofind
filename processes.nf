@@ -54,6 +54,7 @@ process compare_models {
     // Get overall best fitting model across all Rk
     // Get best fitting model for each Rk
 
+    debug "true"
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
     input:
@@ -61,14 +62,15 @@ process compare_models {
         path models_only
 
     output:
-        path "best_bic_per_rk.tsv"
-        path "models_parsed.tsv"
+        path "models_summary.tsv"
+        path "modelfinder_parsed.tsv"
         env MODELS
 
     script:
     """
     compare_models.R ${models_only}
-    MODELS=`sed 1d best_bic_per_rk.tsv`
+    MODELS=`sed 1d models_summary.tsv`
+    cat models_summary.tsv
     """ 
 }
 
@@ -214,12 +216,13 @@ process concatenate_trees {
 
     shell:
     '''
-    if [ ! -f "*.treefile" ]; then
-        echo "\nOnly one tree was constructed for !{aln}. Are there enough informative sites in each partition?"
-        exit 0
-    else
-        cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
-    fi
+    #if [ ! -f "*.treefile" ]; then
+    #    echo "\nOnly one tree was constructed for !{aln}. Are there enough informative sites in each partition?"
+    #    exit 0
+    #else
+    #    cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
+    #fi
+    cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
     '''
 }
 
@@ -273,4 +276,28 @@ process iqtree_mast_tr_r2 {
         -m "TMIX{GTR+FO+G,GTR+FO+G}+TR" -nt ${nthreads} -wslr -wspr -alninfo
     """
     
+}
+
+process get_bic {
+    // From *.iqtree for single tree reconstruction and MAST
+    // Then append to existing models
+    
+    debug "true"
+    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+
+    input:
+        path aln
+        path iqtree 
+        val model
+
+    output:
+        env LINE
+
+    shell:
+    '''
+    MODEL=!{model}
+    BIC=`grep BIC !{iqtree} | sed -E 's/^.+ //g'`
+    LINE=`echo -e "${MODEL}\t${BIC}"`
+    echo ${LINE}
+    '''
 }

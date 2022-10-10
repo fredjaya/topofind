@@ -13,11 +13,12 @@ models <-
   mutate(FreeRates = if_else(grepl("\\+R", Model), gsub("^.+\\+R", "", Model), "1")) %>%
   mutate(FreeRates = as.numeric(FreeRates))
 
-write.table(models, "models_parsed.tsv", sep = "\t", quote = F, row.names = F)
+write.table(models, "modelfinder_parsed.tsv", sep = "\t", quote = F, row.names = F)
 
 bic_rk <- 
   models %>%
   group_by(FreeRates) %>%
-  summarise(Model = Model[which.min(BIC)], BIC = min(BIC))
+  summarise(Model = Model[which.min(BIC)], BIC = min(BIC)) %>%
+  select(Model, BIC)
 
-write.table(bic_rk, "best_bic_per_rk.tsv", sep = "\t", quote = F, row.names = F)
+write.table(bic_rk, "models_summary.tsv", sep = "\t", quote = F, row.names = F)
