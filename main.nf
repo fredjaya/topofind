@@ -1,12 +1,9 @@
 nextflow.enable.dsl = 2
 
-params.aln_path = "/home/fredjaya/Dropbox/treemix_rc/04_testing/rob_sims/test1.fa"
-params.aln_format = "fasta"
-params.out = "/home/fredjaya/Dropbox/treemix_rc/04_testing/rob_sims/"
-params.nthreads = 1
-params.ncpus = 1
-
-params.aln = Channel.fromPath(params.aln_path)
+params.aln_ch = Channel.fromPath(params.aln)
+params.prefix = Channel
+    .fromPath(params.aln)
+    .map { file -> file.simpleName.toString() }
 
 def store_models(x) {
     // Store number of FreeRate categories, model, and BIC scores
@@ -51,13 +48,14 @@ workflow {
     out         = ${params.out}
     nthreads    = ${params.nthreads}
     ncpus       = ${params.ncpus}
-    aln_path    = ${params.aln_path}
+    aln         = ${params.aln}
     aln_format  = ${params.aln_format}
+    prefix      = ${params.prefix}
     """
 
-    t1_modelfinder_across_rhas_categories(params.aln, params.nthreads)
-    keep_modelfinder_results(params.aln, t1_modelfinder_across_rhas_categories.out[2])
-    best_model_per_rhas(params.aln, keep_modelfinder_results.out)
+    t1_modelfinder_across_rhas_categories(params.aln_ch, params.nthreads)
+    keep_modelfinder_results(params.aln_ch, t1_modelfinder_across_rhas_categories.out[2])
+    best_model_per_rhas(params.aln_ch, keep_modelfinder_results.out)
     best_model_per_rhas.out[2]
         .map { models_out -> store_models(models_out) }
         .set { models_list }
@@ -72,19 +70,19 @@ workflow {
 
     // For now, just proceed with R2
 
-    t1_iqtree_with_best_r2(params.aln, params.nthreads, models_list.map { x -> x[1][0] } )
-    get_bic_t1_r2(params.aln, t1_iqtree_with_best_r2.out[2], "t1_r2")
-    hmm_assign_sites_t1_r2(params.aln, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4], "t1_r2")
-    evaluate_partitions(params.aln, hmm_assign_sites_t1_r2.out[1])
-    split_aln(params.aln, evaluate_partitions.out[0], params.aln_format)
+    t1_iqtree_with_best_r2(params.aln_ch, params.nthreads, models_list.map { x -> x[1][0] } )
+    get_bic_t1_r2(params.aln_ch, t1_iqtree_with_best_r2.out[2], "t1_r2")
+    hmm_assign_sites_t1_r2(params.aln_ch, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4], "t1_r2")
+    evaluate_partitions(params.aln_ch, hmm_assign_sites_t1_r2.out[1])
+    split_aln(params.aln_ch, evaluate_partitions.out[0], params.aln_format)
     t1_iqtree_per_split(split_aln.out[0].flatten(), params.nthreads)
     // TODO: t1_iqtree_class_1 
     // TODO: t1_iqtree_class_2
     // TODO: get_bic_t1_split(.collect())
-    concatenate_trees_for_mast(params.aln, t1_iqtree_per_split.out[1].collect(), "class_1_2")
-    t2_iqtree_mast(params.aln, params.nthreads, concatenate_trees_for_mast.out[0])
-    get_bic_t2_mast(params.aln, t2_iqtree_mast.out[2], "mast_tr_r2")
-    hmm_assign_sites_mast(params.aln, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
+    concatenate_trees_for_mast(params.aln_ch, t1_iqtree_per_split.out[1].collect(), "class_1_2")
+    t2_iqtree_mast(params.aln_ch, params.nthreads, concatenate_trees_for_mast.out[0])
+    get_bic_t2_mast(params.aln_ch, t2_iqtree_mast.out[2], "mast_tr_r2")
+    hmm_assign_sites_mast(params.aln_ch, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
     
 }
 
