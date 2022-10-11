@@ -24,20 +24,20 @@ def compare_bic(models_list, rk1, rk2) {
 }
 
 include { 
-    t1_rk_modelfinder; 
-    keep_modelfinder; 
-    compare_models; 
-    t1_r2;
+    t1_modelfinder_across_rhas_categories; 
+    keep_modelfinder_results; 
+    best_model_per_rhas; 
+    t1_iqtree_with_best_r2;
     get_bic as get_bic_t1_r2;
-    hmm_assign_sites; 
-    parse_partition; 
+    hmm_assign_sites as hmm_assign_sites_t1_r2; 
+    evaluate_partitions; 
     split_aln;
-    iqtree_default;
-    get_bic as get_bic_iqtree_default;
-    concatenate_trees; 
-    iqtree_mast_tr_r2; 
-    get_bic as get_bic_mast_tr;
-    hmm_assign_sites as hmm_assign_sites_mast_tr
+    t1_iqtree_per_split;
+    get_bic as get_bic_t1_split;
+    concatenate_trees_for_mast; 
+    t2_iqtree_mast; 
+    get_bic as get_bic_t2_mast;
+    hmm_assign_sites as hmm_assign_sites_mast;
 } from './processes.nf' 
 
 workflow {
@@ -55,14 +55,12 @@ workflow {
     aln_format  = ${params.aln_format}
     """
 
-    t1_rk_modelfinder(params.aln, params.nthreads)
-    keep_modelfinder(params.aln, t1_rk_modelfinder.out[2])
-    compare_models(params.aln, keep_modelfinder.out)
-    compare_models.out[2]
+    t1_modelfinder_across_rhas_categories(params.aln, params.nthreads)
+    keep_modelfinder_results(params.aln, t1_modelfinder_across_rhas_categories.out[2])
+    best_model_per_rhas(params.aln, keep_modelfinder_results.out)
+    best_model_per_rhas.out[2]
         .map { models_out -> store_models(models_out) }
         .set { models_list }
-
-    println("\nBest model per number of FreeRates categories:")
 
     /*
     // Compares BICs
@@ -74,16 +72,19 @@ workflow {
 
     // For now, just proceed with R2
 
-    t1_r2(params.aln, params.nthreads, models_list.map { x -> x[1][0] } )
-    get_bic_t1_r2(params.aln, t1_r2.out[2], "t1_r2")
-    hmm_assign_sites(params.aln, t1_r2.out[5], t1_r2.out[4], "t1_r2")
-    parse_partition(params.aln, hmm_assign_sites.out[1])
-    split_aln(params.aln, parse_partition.out[0], params.aln_format)
-    iqtree_default(split_aln.out[0].flatten(), params.nthreads)
-    concatenate_trees(params.aln, iqtree_default.out[1].collect(), "class_1_2")
-    iqtree_mast_tr_r2(params.aln, params.nthreads, concatenate_trees.out[0])
-    get_bic_mast_tr(params.aln, iqtree_mast_tr_r2.out[2], "mast_tr_r2")
-    hmm_assign_sites_mast_tr(params.aln, iqtree_mast_tr_r2.out[4], iqtree_mast_tr_r2.out[6], "mast_tr")
+    t1_iqtree_with_best_r2(params.aln, params.nthreads, models_list.map { x -> x[1][0] } )
+    get_bic_t1_r2(params.aln, t1_iqtree_with_best_r2.out[2], "t1_r2")
+    hmm_assign_sites_t1_r2(params.aln, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4], "t1_r2")
+    evaluate_partitions(params.aln, hmm_assign_sites_t1_r2.out[1])
+    split_aln(params.aln, evaluate_partitions.out[0], params.aln_format)
+    t1_iqtree_per_split(split_aln.out[0].flatten(), params.nthreads)
+    // TODO: t1_iqtree_class_1 
+    // TODO: t1_iqtree_class_2
+    // TODO: get_bic_t1_split(.collect())
+    concatenate_trees_for_mast(params.aln, t1_iqtree_per_split.out[1].collect(), "class_1_2")
+    t2_iqtree_mast(params.aln, params.nthreads, concatenate_trees_for_mast.out[0])
+    get_bic_t2_mast(params.aln, t2_iqtree_mast.out[2], "mast_tr_r2")
+    hmm_assign_sites_mast(params.aln, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
     
 }
 

@@ -1,6 +1,6 @@
 nextflow.enable.dsl = 2
 
-process t1_rk_modelfinder {
+process t1_modelfinder_across_rhas_categories {
     /*
      * t1: single-tree
      * rk: use modelfinder to calculate fit of substitution models and 
@@ -30,7 +30,7 @@ process t1_rk_modelfinder {
 
 }
 
-process keep_modelfinder {
+process keep_modelfinder_results {
     // Keep only ModelFinder results from .log
 
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
@@ -50,7 +50,7 @@ process keep_modelfinder {
 
 }
 
-process compare_models {
+process best_model_per_rhas {
     // Get overall best fitting model across all Rk
     // Get best fitting model for each Rk
 
@@ -74,7 +74,7 @@ process compare_models {
     """ 
 }
 
-process t1_r2 {
+process t1_iqtree_with_best_r2 {
 
     /*
      * t1: single-tree
@@ -129,7 +129,7 @@ process hmm_assign_sites {
     """ 
 }
 
-process parse_partition {
+process evaluate_partitions {
     /* 
      * Terminate pipeline if all sites were assigned to a single class
      * i.e. one partition
@@ -160,7 +160,7 @@ process parse_partition {
 
 process split_aln {
     // Split alignment according to class partitions
-    
+   
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
     input:
@@ -177,13 +177,13 @@ process split_aln {
     """
 }
 
-process iqtree_default {
+process t1_iqtree_per_split {
 
-    publishDir "${params.out}/${aln.simpleName}", mode: "copy"
+    publishDir "${params.out}/${splitted_aln.simpleName}", mode: "copy"
     errorStrategy { task.exitStatus == 2 ? "ignore" : "terminate" }
 
     input:
-        path aln
+        path splitted_aln
         val nthreads
 
     output:
@@ -191,16 +191,15 @@ process iqtree_default {
         path '*.treefile'
         path '*.log'
         path '*.iqtree'
-        path '*.ckp.gz'
 
     script:
     """
-    iqtree2 -s ${aln} -pre ${aln.simpleName} -nt ${nthreads}
+    iqtree2 -s ${splitted_aln} -pre ${splitted_aln.simpleName} -nt ${nthreads}
     """
     
 }
 
-process concatenate_trees {
+process concatenate_trees_for_mast {
     // Combine trees from partitioned sites for MAST input
 
     debug true
@@ -216,12 +215,6 @@ process concatenate_trees {
 
     shell:
     '''
-    #if [ ! -f "*.treefile" ]; then
-    #    echo "\nOnly one tree was constructed for !{aln}. Are there enough informative sites in each partition?"
-    #    exit 0
-    #else
-    #    cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
-    #fi
     cat *.treefile > !{aln.simpleName}_!{prefix}.treefile
     '''
 }
@@ -252,7 +245,7 @@ process iqtree_mast_t_r2 {
     
 }
 
-process iqtree_mast_tr_r2 {
+process t2_iqtree_mast {
 
     publishDir "${params.out}/${aln.simpleName}", mode: "copy"
 
