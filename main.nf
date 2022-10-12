@@ -64,7 +64,7 @@ workflow {
     best_model_per_rhas.out[2]
         .map { models_out -> store_models(models_out) }
         .set { models_list }
-    t1_iqtree_with_best_r2(params.prefix, params.aln, params.nthreads, models_list.map { x -> x[1][0] } )
+    t1_iqtree_with_best_r2(params.prefix, params.aln_ch, params.nthreads, models_list.map { x -> x[1][0] } )
     get_bic_t1_r2(params.prefix, t1_iqtree_with_best_r2.out[2], "t1_r2")
     hmm_assign_sites_t1_r2(params.prefix, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4], "t1_r2")
     evaluate_partitions(params.prefix, hmm_assign_sites_t1_r2.out[1])

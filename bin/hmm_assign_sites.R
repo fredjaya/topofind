@@ -1,4 +1,4 @@
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 args <- commandArgs(trailingOnly=TRUE)
 sitelh <- args[1]
 alninfo <- args[2]

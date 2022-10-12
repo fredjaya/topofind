@@ -9,6 +9,16 @@ devtools 2.4.3
 [MixtureModelHMM](https://github.com/fredjaya/MixtureModelHMM)  
 [AMAS](https://github.com/marekborowiec/AMAS)  
 
+## Installation  
+
+```
+conda env create -f env.yml
+Rscript install_pacakges.R
+```
+
+- Install IQ-TREE manually and add symlink to /bin  
+
+
 ## Simulations  
 
 |       | Best $R_n$ | $BIC_{t1;r2}$ | $BIC_{MAST+TR}$ | $T_n$ | Partitions        | Simulation parameters                      | Outcome               |
