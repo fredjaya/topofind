@@ -31,11 +31,58 @@ include {
     hmm_assign_sites as hmm_assign_sites_mast;
 } from './processes.nf' 
 
-workflow {
+workflow i1 {
     
     /*
-     * This workflow will only use R2 rate categories to to delimit sites 
-     */ 
+     * Split an alignment into two blocks according to R2 FreeRate classes
+     *
+     */
+
+    t1_modelfinder_across_rhas_categories(params.prefix, params.aln_ch, params.nthreads)
+    keep_modelfinder_results(params.prefix, t1_modelfinder_across_rhas_categories.out[2])
+    best_model_per_rhas(params.prefix, keep_modelfinder_results.out)
+    best_model_per_rhas.out[2]
+        .map { models_out -> store_models(models_out) }
+        .set { models_list }
+    t1_iqtree_with_best_r2(params.prefix, params.aln_ch, params.nthreads, models_list.map { x -> x[1][0] } )
+    get_bic_t1_r2(params.prefix, t1_iqtree_with_best_r2.out[2], "t1_r2")
+    hmm_assign_sites_t1_r2(params.prefix, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4], "t1_r2")
+    evaluate_partitions(params.prefix, hmm_assign_sites_t1_r2.out[1])
+    split_aln(params.prefix, params.aln_ch, evaluate_partitions.out[0], params.aln_format)
+    t1_iqtree_per_split(split_aln.out[0].flatten(), params.nthreads)
+
+}
+
+workflow mast {
+    
+    /*
+     * Collect all input trees, run MAST +TR, record the BIC and 
+     * assign sites with the HMM
+     */
+
+    concatenate_trees_for_mast(params.prefix, params.aln_ch, t1_iqtree_per_split.out[1].collect(), "class_1_2")
+    t2_iqtree_mast(params.prefix, params.aln_ch, params.nthreads, concatenate_trees_for_mast.out[0])
+    get_bic_t2_mast(params.prefix, t2_iqtree_mast.out[2], "mast_tr_r2")
+    hmm_assign_sites_mast(params.prefix, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
+}
+
+workflow i2 {
+
+    /*
+     * Something like run on three trees
+     */
+
+    evaluate_partitions(params.prefix, hmm_assign_sites_t1_r2.out[1])
+    split_aln(params.prefix, params.aln_ch, evaluate_partitions.out[0], params.aln_format)
+    t1_iqtree_per_split(split_aln.out[0].flatten(), params.nthreads)
+    t2_iqtree_mast(params.prefix, params.aln_ch, params.nthreads, concatenate_trees_for_mast.out[0])
+    concatenate_trees_for_mast(params.prefix, params.aln_ch, t1_iqtree_per_split.out[1].collect(), "class_1_2")
+    get_bic_t2_mast(params.prefix, t2_iqtree_mast.out[2], "mast_tr_r2")
+    hmm_assign_sites_mast(params.prefix, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
+
+}
+
+workflow {
     
     params.aln_ch = Channel
         .fromPath(params.aln)
@@ -57,25 +104,5 @@ workflow {
     aln         = ${params.aln}
     aln_format  = ${params.aln_format}
     """
-
-    t1_modelfinder_across_rhas_categories(params.prefix, params.aln_ch, params.nthreads)
-    keep_modelfinder_results(params.prefix, t1_modelfinder_across_rhas_categories.out[2])
-    best_model_per_rhas(params.prefix, keep_modelfinder_results.out)
-    best_model_per_rhas.out[2]
-        .map { models_out -> store_models(models_out) }
-        .set { models_list }
-    t1_iqtree_with_best_r2(params.prefix, params.aln_ch, params.nthreads, models_list.map { x -> x[1][0] } )
-    get_bic_t1_r2(params.prefix, t1_iqtree_with_best_r2.out[2], "t1_r2")
-    hmm_assign_sites_t1_r2(params.prefix, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4], "t1_r2")
-    evaluate_partitions(params.prefix, hmm_assign_sites_t1_r2.out[1])
-    split_aln(params.prefix, params.aln_ch, evaluate_partitions.out[0], params.aln_format)
-    t1_iqtree_per_split(split_aln.out[0].flatten(), params.nthreads)
-    // TODO: t1_iqtree_class_1 
-    // TODO: t1_iqtree_class_2
-    // TODO: get_bic_t1_split(.collect())
-    concatenate_trees_for_mast(params.prefix, params.aln_ch, t1_iqtree_per_split.out[1].collect(), "class_1_2")
-    t2_iqtree_mast(params.prefix, params.aln_ch, params.nthreads, concatenate_trees_for_mast.out[0])
-    get_bic_t2_mast(params.prefix, t2_iqtree_mast.out[2], "mast_tr_r2")
-    hmm_assign_sites_mast(params.prefix, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
+ 
 }
-

@@ -13,6 +13,7 @@ devtools 2.4.3
 
 ```
 conda env create -f env.yml
+conda activate rec-mast
 Rscript install_pacakges.R
 ```
 
