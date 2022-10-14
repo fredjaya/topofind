@@ -4,7 +4,8 @@ include {
 
     i1 as i1_1;
     mast;
-    i1 as i1_2;
+    i1 as i1_2a;
+    i1 as i1_2b;
 
 } from "./workflows.nf"
 
@@ -33,8 +34,20 @@ workflow {
     
     i1_1(params.prefix, params.aln_ch, params.aln_format, params.nthreads)
     mast(params.prefix, params.aln_ch, params.aln_format, i1_1.out.trees, params.nthreads)
-    mast.out.class_1.view()
-    mast.out.class_2.view()
-    //i1_2(params.prefix, mast.out.splitted_aln, params.aln_format, params.nthreads)
+    i1_2a(params.prefix, mast.out.class_1, "fasta", params.nthreads)
+    i1_2b(params.prefix, mast.out.class_2, "fasta", params.nthreads)
+
+    n_trees = i1_2a.out.trees
+        .mix(i1_2b.out.trees)
+        .flatten()
+        .count()
+
+    // Count number of trees output by i1_2a + i1_2b
+    // .collect(A1, A2, B1, B2).size()
+    // if n_trees == 2 : TERMINATE
+    // elif n_trees == 3 : mast()
+    // elif n_trees == 4:
+    //      .collect(A1, A2, B1).set{A1A2B1}
+    //      .collect(A1, B1, B2).set{A1A2B1}
 
 }
