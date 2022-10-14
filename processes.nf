@@ -1,5 +1,10 @@
 nextflow.enable.dsl = 2
 
+def store_models(x) {
+    // Store number of FreeRate categories, model, and BIC scores
+    x.tokenize(" ").collate(2)                                   
+}
+
 process t1_modelfinder_across_rhas_categories {
     /*
      * t1: single-tree
