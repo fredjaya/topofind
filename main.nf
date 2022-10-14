@@ -34,6 +34,6 @@ workflow {
     i1_1(params.prefix, params.aln_ch, params.aln_format, params.nthreads)
     mast(params.prefix, params.aln_ch, params.aln_format, i1_1.out.trees, params.nthreads)
     mast.out.splitted_aln.view() 
-    mast.out.bic.view() 
+    i1_2(params.prefix, mast.out.splitted_aln, params.aln_format, params.nthreads)
 
 }
