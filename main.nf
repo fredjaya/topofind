@@ -74,11 +74,19 @@ workflow mast {
      * Collect all input trees, run MAST +TR, record the BIC and 
      * assign sites with the HMM
      */
-    
-    concatenate_trees_for_mast(params.prefix, params.aln_ch, t1_iqtree_per_split.out[1].collect(), "class_1_2")
-    t2_iqtree_mast(params.prefix, params.aln_ch, params.nthreads, concatenate_trees_for_mast.out[0])
-    get_bic_t2_mast(params.prefix, t2_iqtree_mast.out[2], "mast_tr_r2")
-    hmm_assign_sites_mast(params.prefix, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
+
+    take:
+        prefix
+        aln_ch
+        trees
+        nthreads
+
+    main:
+        concatenate_trees_for_mast(prefix, aln_ch, trees, "class_1_2")
+        t2_iqtree_mast(prefix, aln_ch, nthreads, concatenate_trees_for_mast.out[0])
+        get_bic_t2_mast(prefix, t2_iqtree_mast.out[2], "mast_tr_r2")
+        hmm_assign_sites_mast(prefix, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
+
 }
 
 workflow i2 {
@@ -114,5 +122,6 @@ workflow {
     """
     
     i1(params.prefix, params.aln_ch, params.aln_format, params.nthreads)
+    mast(params.prefix, params.aln_ch, i1.out.trees, params.nthreads)
 
 }
