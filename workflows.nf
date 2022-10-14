@@ -70,9 +70,16 @@ workflow mast {
         hmm_assign_sites_mast(prefix, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
         evaluate_partitions(prefix, hmm_assign_sites_mast.out[1])
         split_aln(prefix, aln_ch, evaluate_partitions.out[0], aln_format)
+        split_aln.out[0]
+            .flatten()
+            .branch {
+                class_1: it =~ /class_1/
+                class_2: it =~ /class_2/
+            } .set { splitted_aln }
 
     emit:
-        splitted_aln = split_aln.out[0].flatten()
+        class_1 = splitted_aln.class_1
+        class_2 = splitted_aln.class_2
         bic = get_bic_t2_mast.out[0]
 
 }
