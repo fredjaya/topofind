@@ -6,6 +6,7 @@ include {
     mast;
     i1 as i1_2a;
     i1 as i1_2b;
+    i2
 
 } from "./workflows.nf"
 
@@ -33,15 +34,15 @@ workflow {
     """
     
     i1_1(params.prefix, params.aln_ch, params.aln_format, params.nthreads)
-    mast(params.prefix, params.aln_ch, params.aln_format, i1_1.out.trees, params.nthreads)
+    mast(params.prefix, params.aln_ch, params.aln_format, i1_1.out.t2, params.nthreads)
     i1_2a(params.prefix, mast.out.class_1, "fasta", params.nthreads)
     i1_2b(params.prefix, mast.out.class_2, "fasta", params.nthreads)
 
-    n_trees = i1_2a.out.trees
-        .mix(i1_2b.out.trees)
+    new_trees = i1_2a.out.t2
+        .mix(i1_2b.out.t2)
         .flatten()
-        .count()
 
+    i2(i1_2a.out.t1, i1_2b.out.t1, new_trees)
     // Count number of trees output by i1_2a + i1_2b
     // .collect(A1, A2, B1, B2).size()
     // if n_trees == 2 : TERMINATE

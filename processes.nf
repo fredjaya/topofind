@@ -5,6 +5,7 @@ def store_models(x) {
     x.tokenize(" ").collate(2)                                   
 }
 
+//def count_trees = 
 process t1_modelfinder_across_rhas_categories {
     /*
      * t1: single-tree

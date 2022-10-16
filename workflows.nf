@@ -45,7 +45,8 @@ workflow i1 {
         t1_iqtree_per_split(split_aln.out[0].flatten(), nthreads)
 
     emit:
-        trees = t1_iqtree_per_split.out[1].collect()
+        t1 = t1_iqtree_with_best_r2.out[0]
+        t2 = t1_iqtree_per_split.out[1].collect()
         bic = get_bic_t1_r2.out[0]
 }
 
@@ -90,12 +91,19 @@ workflow i2 {
      * Something like run on three trees
      */
 
-    evaluate_partitions(params.prefix, hmm_assign_sites_t1_r2.out[1])
-    split_aln(params.prefix, params.aln_ch, evaluate_partitions.out[0], params.aln_format)
-    t1_iqtree_per_split(split_aln.out[0].flatten(), params.nthreads)
-    t2_iqtree_mast(params.prefix, params.aln_ch, params.nthreads, concatenate_trees_for_mast.out[0])
-    concatenate_trees_for_mast(params.prefix, params.aln_ch, t1_iqtree_per_split.out[1].collect(), "class_1_2")
-    get_bic_t2_mast(params.prefix, t2_iqtree_mast.out[2], "mast_tr_r2")
-    hmm_assign_sites_mast(params.prefix, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
+    take:
+        mast_tree_class_1
+        mast_tree_class_2
+        new_trees
+
+    main:
+        new_trees
+            .branch {
+                class_1_split: it =~ /class_1-out_class/
+                class_2_split: it =~ /class_2-out_class/
+            } .set { sorted_trees }
+
+        mast_tree_class_1.mix(sorted_trees.class_2_split).set { a1b12 }
+        mast_tree_class_2.mix(sorted_trees.class_1_split).set { a12b1 }
 
 }
