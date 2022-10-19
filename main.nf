@@ -2,10 +2,10 @@ nextflow.enable.dsl = 2
 
 include {
 
-    i1 as i1_1;
-    mast as mast_1;
-    i1 as i1_2a;
-    i1 as i1_2b;
+    split_aln as A01_split_aln;
+    mast as A02_mast_t2;
+    split_aln as B01_split_aln;
+    split_aln as C01__split_aln;
     sort_trees;
     mast as mast_a1b12;
     mast as mast_a12b1;
@@ -15,7 +15,7 @@ include {
 params.aln_ch = Channel
     .fromPath(params.aln)
 
-params.prefix = Channel
+params.aln_name = Channel
     .fromPath(params.aln)
     .map { file -> file.simpleName }
 
@@ -37,17 +37,20 @@ workflow {
     // Debugging
     previous_model = ${params.previous_model}
     """
-    
-    i1_1(params.prefix, params.aln_ch, params.aln_format, params.nthreads)
-    mast_1(params.prefix, params.aln_ch, params.aln_format, i1_1.out.t2, params.nthreads)
-    i1_2a(params.prefix, mast_1.out.class_1, "fasta", params.nthreads)
-    i1_2b(params.prefix, mast_1.out.class_2, "fasta", params.nthreads)
-    
+  
+    A01_split_aln(params.aln_name, "A01_split_aln",  params.aln_ch, params.aln_format, params.nthreads)
+   
+ /*
+    A02_mast_t2(params.prefix, params.aln_ch, params.aln_format, i1_1.out.t2, params.nthreads)
+    B01_split_aln(params.prefix, mast_1.out.class_1, "fasta", params.nthreads)
+    C01_split_aln(params.prefix, mast_1.out.class_2, "fasta", params.nthreads)
+   */
+ 
     /*
      * Mixing channels should be conducted outside of subworkflows to ensure
      * all outputs are collected prior to downstream processes 
      */
-
+/*
     i1_2a.out.t2
         .mix(i1_2b.out.t2)
         .flatten()
@@ -60,7 +63,7 @@ workflow {
     i1_2b.out.t1.mix(new_trees.class_1_split).set { trees_a12b1 }
 
     trees_a1b12.view()
-
+*/
     //sort_trees(i1_2a.out.t1, i1_2b.out.t1, new_trees)
     //mast_a1b12(params.prefix, params.aln_ch, params.aln_format, sort_trees.out.trees_a1b12, params.nthreads)
     //mast_a12b1(params.prefix, params.aln_ch, params.aln_format, sort_trees.out.trees_a12b1, params.nthreads)
