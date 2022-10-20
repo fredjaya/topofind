@@ -46,21 +46,14 @@ workflow {
      * Mixing channels should be conducted outside of subworkflows to ensure
      * all outputs are collected prior to downstream processes 
      */
-    B03_split_aln.out.t2
-        .mix(C03_split_aln.out.t2)
-        .flatten()
-        .branch {
-            block_B_split: it =~ /class_1-out_class/
-            block_C_split: it =~ /class_2-out_class/
-        } .set { new_trees } 
 
-    B03_split_aln.out.t1.mix(new_trees.block_B_split).set { trees_B1C12 }
-    C03_split_aln.out.t1.mix(new_trees.block_C_split).set { trees_B12C1 }
+    B03_split_aln.out.t1.combine(C03_split_aln.out.t2).set { trees_B1C12 }
+    C03_split_aln.out.t1.combine(B03_split_aln.out.t2).set { trees_B12C1 }
 
+    trees_B12C1.view()
     trees_B1C12.view()
-
-    B1C1204_mast(params.aln_name, "04_B1C12_mast", params.aln_ch, params.aln_format, trees_B1C12, params.nthreads)
-    B12C104_mast(params.aln_name, "04_B12C1_mast", params.aln_ch, params.aln_format, trees_B12C1, params.nthreads)
+    //B1C1204_mast(params.aln_name, "04_B1C12_mast", params.aln_ch, params.aln_format, trees_B1C12, params.nthreads)
+    //B12C104_mast(params.aln_name, "04_B12C1_mast", params.aln_ch, params.aln_format, trees_B12C1, params.nthreads)
     
     // Count number of trees output by i1_2a + i1_2b
     // .collect(A1, A2, B1, B2).size()
