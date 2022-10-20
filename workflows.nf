@@ -64,11 +64,12 @@ workflow mast {
         aln_ch
         aln_format
         trees
+        mast_submodel 
         nthreads
 
     main:
         concatenate_trees_for_mast(aln_name, run_mode, aln_ch, trees)
-        t2_iqtree_mast(aln_name, run_mode, aln_ch, nthreads, concatenate_trees_for_mast.out[0])
+        t2_iqtree_mast(aln_name, run_mode, aln_ch, concatenate_trees_for_mast.out[0], mast_submodel, nthreads)
         get_bic_t2_mast(aln_name, run_mode, t2_iqtree_mast.out[2])
         hmm_assign_sites_mast(aln_name, run_mode, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6])
         evaluate_partitions(aln_name, run_mode, hmm_assign_sites_mast.out[1])

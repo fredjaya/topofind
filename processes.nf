@@ -273,8 +273,9 @@ process t2_iqtree_mast {
         val aln_name
         val run_mode
         path aln
-        val nthreads
         path trees
+        val mast_submodel
+        val nthreads
 
     output:
         path '*.treefile'
@@ -288,7 +289,7 @@ process t2_iqtree_mast {
     script:
     """
     iqtree2 -s ${aln} -pre t2_mast_tr -nt ${nthreads} -te ${trees} \
-        -m "TMIX{GTR+FO+G,GTR+FO+G}+TR" -nt ${nthreads} -wslr -wspr -alninfo
+        -m "TMIX{"${mast_submodel}"}+TR" -nt ${nthreads} -wslr -wspr -alninfo
     """
     
 }

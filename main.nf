@@ -38,7 +38,7 @@ workflow {
     """
   
     A01_split_aln(params.aln_name, "01_A_split_aln",  params.aln_ch, params.aln_format, params.nthreads)
-    BC02_mast(params.aln_name, "02_BC_mast", params.aln_ch, params.aln_format, A01_split_aln.out.t2, params.nthreads)
+    BC02_mast(params.aln_name, "02_BC_mast", params.aln_ch, params.aln_format, A01_split_aln.out.t2, "GTR+FO+G,GTR+FO+G", params.nthreads)
     B03_split_aln(params.aln_name, "03_B_split_aln", BC02_mast.out.class_1, "fasta", params.nthreads)
     C03_split_aln(params.aln_name, "03_C_split_aln", BC02_mast.out.class_2, "fasta", params.nthreads)
  
@@ -50,10 +50,8 @@ workflow {
     B03_split_aln.out.t1.combine(C03_split_aln.out.t2).set { trees_B1C12 }
     C03_split_aln.out.t1.combine(B03_split_aln.out.t2).set { trees_B12C1 }
 
-    trees_B12C1.view()
-    trees_B1C12.view()
-    //B1C1204_mast(params.aln_name, "04_B1C12_mast", params.aln_ch, params.aln_format, trees_B1C12, params.nthreads)
-    //B12C104_mast(params.aln_name, "04_B12C1_mast", params.aln_ch, params.aln_format, trees_B12C1, params.nthreads)
+    B1C1204_mast(params.aln_name, "04_B1C12_mast", params.aln_ch, params.aln_format, trees_B1C12, "GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
+    B12C104_mast(params.aln_name, "04_B12C1_mast", params.aln_ch, params.aln_format, trees_B12C1, "GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
     
     // Count number of trees output by i1_2a + i1_2b
     // .collect(A1, A2, B1, B2).size()
