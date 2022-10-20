@@ -131,7 +131,6 @@ process hmm_assign_sites {
         val run_mode
         path sitelh 
         path alninfo
-        val model_prefix
 
     output:
         path "*_site_assignment.png"
@@ -139,7 +138,7 @@ process hmm_assign_sites {
 
     script:
     """
-    hmm_assign_sites.R ${sitelh} ${alninfo} ${model_prefix}
+    hmm_assign_sites.R ${sitelh} ${alninfo} ${run_mode}
     """ 
 }
 
@@ -229,14 +228,13 @@ process concatenate_trees_for_mast {
         val run_mode
         path aln
         path "*.treefile"
-        val model_prefix
 
     output:
         path "*.treefile", optional: true
 
     shell:
     '''
-    cat *.treefile > !{aln_name}_concat.treefile
+    cat *.treefile > concat.treefile
     '''
 }
 
@@ -269,10 +267,11 @@ process iqtree_mast_t_r2 {
 
 process t2_iqtree_mast {
 
-    publishDir "${params.out}/${aln_name}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
 
     input:
         val aln_name
+        val run_mode
         path aln
         val nthreads
         path trees
@@ -288,7 +287,7 @@ process t2_iqtree_mast {
 
     script:
     """
-    iqtree2 -s ${aln} -pre ${trees.simpleName}_mast_tr -nt ${nthreads} -te ${trees} \
+    iqtree2 -s ${aln} -pre t2_mast_tr -nt ${nthreads} -te ${trees} \
         -m "TMIX{GTR+FO+G,GTR+FO+G}+TR" -nt ${nthreads} -wslr -wspr -alninfo
     """
     
@@ -305,14 +304,13 @@ process get_bic {
         val aln_name 
         val run_mode
         path iqtree 
-        val model
 
     output:
         env LINE
 
     shell:
     '''
-    MODEL=!{model}
+    MODEL=!{run_mode}
     BIC=`grep BIC !{iqtree} | sed -E 's/^.+ //g'`
     LINE=`echo -e "${MODEL}\t${BIC}"`
     echo ${LINE}

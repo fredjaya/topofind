@@ -3,12 +3,11 @@ nextflow.enable.dsl = 2
 include {
 
     split_aln as A01_split_aln;
-    mast as A02_mast_t2;
-    split_aln as B01_split_aln;
-    split_aln as C01__split_aln;
-    sort_trees;
-    mast as mast_a1b12;
-    mast as mast_a12b1;
+    mast as BC02_mast;
+    split_aln as B03_split_aln;
+    split_aln as C03_split_aln;
+    mast as B1C1204_mast;
+    mast as B12C104_mast;
 
 } from "./workflows.nf"
 
@@ -38,35 +37,30 @@ workflow {
     previous_model = ${params.previous_model}
     """
   
-    A01_split_aln(params.aln_name, "A01_split_aln",  params.aln_ch, params.aln_format, params.nthreads)
-   
- /*
-    A02_mast_t2(params.prefix, params.aln_ch, params.aln_format, i1_1.out.t2, params.nthreads)
-    B01_split_aln(params.prefix, mast_1.out.class_1, "fasta", params.nthreads)
-    C01_split_aln(params.prefix, mast_1.out.class_2, "fasta", params.nthreads)
-   */
+    A01_split_aln(params.aln_name, "01_A_split_aln",  params.aln_ch, params.aln_format, params.nthreads)
+    BC02_mast(params.aln_name, "02_BC_mast", params.aln_ch, params.aln_format, A01_split_aln.out.t2, params.nthreads)
+    B03_split_aln(params.aln_name, "03_B_split_aln", BC02_mast.out.class_1, "fasta", params.nthreads)
+    C03_split_aln(params.aln_name, "03_C_split_aln", BC02_mast.out.class_2, "fasta", params.nthreads)
  
     /*
      * Mixing channels should be conducted outside of subworkflows to ensure
      * all outputs are collected prior to downstream processes 
      */
-/*
-    i1_2a.out.t2
-        .mix(i1_2b.out.t2)
+    B03_split_aln.out.t2
+        .mix(C03_split_aln.out.t2)
         .flatten()
         .branch {
-            class_1_split: it =~ /class_1-out_class/
-            class_2_split: it =~ /class_2-out_class/
+            block_B_split: it =~ /class_1-out_class/
+            block_C_split: it =~ /class_2-out_class/
         } .set { new_trees } 
 
-    i1_2a.out.t1.mix(new_trees.class_2_split).set { trees_a1b12 }
-    i1_2b.out.t1.mix(new_trees.class_1_split).set { trees_a12b1 }
+    B03_split_aln.out.t1.mix(new_trees.block_B_split).set { trees_B1C12 }
+    C03_split_aln.out.t1.mix(new_trees.block_C_split).set { trees_B12C1 }
 
-    trees_a1b12.view()
-*/
-    //sort_trees(i1_2a.out.t1, i1_2b.out.t1, new_trees)
-    //mast_a1b12(params.prefix, params.aln_ch, params.aln_format, sort_trees.out.trees_a1b12, params.nthreads)
-    //mast_a12b1(params.prefix, params.aln_ch, params.aln_format, sort_trees.out.trees_a12b1, params.nthreads)
+    trees_B1C12.view()
+
+    B1C1204_mast(params.aln_name, "04_B1C12_mast", params.aln_ch, params.aln_format, trees_B1C12, params.nthreads)
+    B12C104_mast(params.aln_name, "04_B12C1_mast", params.aln_ch, params.aln_format, trees_B12C1, params.nthreads)
     
     // Count number of trees output by i1_2a + i1_2b
     // .collect(A1, A2, B1, B2).size()

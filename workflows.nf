@@ -39,8 +39,8 @@ workflow split_aln {
             .map { models_out -> store_models(models_out) }
             .set { models_list }
         t1_iqtree_with_best_r2(aln_name, run_mode, aln_ch, nthreads, models_list.map { x -> x[1][0] } )
-        get_bic_t1_r2(aln_name, run_mode, t1_iqtree_with_best_r2.out[2], "t1_r2")
-        hmm_assign_sites_t1_r2(aln_name, run_mode, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4], "t1_r2")
+        get_bic_t1_r2(aln_name, run_mode, t1_iqtree_with_best_r2.out[2])
+        hmm_assign_sites_t1_r2(aln_name, run_mode, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4])
         evaluate_partitions(aln_name, run_mode, hmm_assign_sites_t1_r2.out[1])
         amas_split(aln_name, run_mode, aln_ch, evaluate_partitions.out[0], aln_format)
         t1_iqtree_per_split(aln_name, run_mode, amas_split.out[0].flatten(), nthreads)
@@ -67,13 +67,13 @@ workflow mast {
         nthreads
 
     main:
-        concatenate_trees_for_mast(aln_name, aln_ch, trees, "class_1_2")
-        t2_iqtree_mast(aln_name, aln_ch, nthreads, concatenate_trees_for_mast.out[0])
-        get_bic_t2_mast(aln_name, t2_iqtree_mast.out[2], "mast_tr_r2")
-        hmm_assign_sites_mast(aln_name, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6], "mast_tr")
-        evaluate_partitions(aln_name, hmm_assign_sites_mast.out[1])
-        split_aln(aln_name, aln_ch, evaluate_partitions.out[0], aln_format)
-        split_aln.out[0]
+        concatenate_trees_for_mast(aln_name, run_mode, aln_ch, trees)
+        t2_iqtree_mast(aln_name, run_mode, aln_ch, nthreads, concatenate_trees_for_mast.out[0])
+        get_bic_t2_mast(aln_name, run_mode, t2_iqtree_mast.out[2])
+        hmm_assign_sites_mast(aln_name, run_mode, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6])
+        evaluate_partitions(aln_name, run_mode, hmm_assign_sites_mast.out[1])
+        amas_split(aln_name, run_mode, aln_ch, evaluate_partitions.out[0], aln_format)
+        amas_split.out[0]
             .flatten()
             .branch {
                 class_1: it =~ /class_1/
