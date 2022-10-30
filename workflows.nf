@@ -87,31 +87,3 @@ workflow mast {
         bic = get_bic_t2_mast.out[0]
 
 }
-
-workflow sort_trees {
-
-    /*
-     * Collect t1 and split t2 trees. Branch channels to contain three trees.
-     * i.e only one split (three blocks) is analysed at once.
-     */
-
-    take:
-        mast_tree_class_1
-        mast_tree_class_2
-        new_trees
-
-    main:
-        new_trees
-            .branch {
-                class_1_split: it =~ /class_1-out_class/
-                class_2_split: it =~ /class_2-out_class/
-            } .set { sorted_trees }
-
-        mast_tree_class_1.mix(sorted_trees.class_2_split).set { trees_a1b12 }
-        mast_tree_class_2.mix(sorted_trees.class_1_split).set { trees_a12b1 }
-
-    emit:
-        trees_a1b12
-        trees_a12b1
-
-}

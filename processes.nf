@@ -298,7 +298,6 @@ process get_bic {
     // From *.iqtree for single tree reconstruction and MAST
     // Then append to existing models
     
-    debug "true"
     publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
 
     input:
@@ -314,6 +313,5 @@ process get_bic {
     MODEL=!{run_mode}
     BIC=`grep BIC !{iqtree} | sed -E 's/^.+ //g'`
     LINE=`echo -e "${MODEL}\t${BIC}"`
-    echo ${LINE}
     '''
 }
