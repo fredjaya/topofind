@@ -325,10 +325,13 @@ process compare_bic {
         tuple val(step_0), val(bic_0)
         tuple val(step_1), val(bic_1)
 
-    
+   
+    output:
+        env OUT_STEP 
+
     shell:
     '''
-    compare_bic.R !{step_0} !{bic_0} !{step_1} !{bic_1}
+    OUT_STEP=`compare_bic.R !{step_0} !{bic_0} !{step_1} !{bic_1}`
     '''
 
 }

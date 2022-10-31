@@ -4,10 +4,19 @@ include {
 
     split_aln as A01_split_aln;
     mast as BC02_mast;
+
     split_aln as B03_split_aln;
     split_aln as C03_split_aln;
     mast as B1C1204_mast;
     mast as B12C104_mast;
+
+    split_aln as C12D1205_split_aln;
+    split_aln as B1C2D1205_split_aln;
+    split_aln as B1C1D1205_split_aln;
+
+    split_aln as B2C1D1205_split_aln;
+    split_aln as B1CD12105_split_aln;
+    split_aln as B12D1205_split_aln
 
 } from "./workflows.nf"
 
@@ -87,4 +96,13 @@ workflow {
     y = bic_all.map { it -> it[3] }
 
     compare_bic(x, y)
+   
+    C12D1205_split_aln(params.aln_name, "05_C12D12_split_aln", B1C1204_mast.out.class_1, "fasta", params.nthreads)
+    B1C2D1205_split_aln(params.aln_name, "05_B1C2D12_split_aln", B1C1204_mast.out.class_2, "fasta", params.nthreads)
+    B1C1D1205_split_aln(params.aln_name, "05_B1C1D12_split_aln", B1C1204_mast.out.class_3, "fasta", params.nthreads)
+
+    B2C1D1205_split_aln(params.aln_name, "05_B1C2D12_split_aln", B1C1204_mast.out.class_2, "fasta", params.nthreads)
+    B1CD12105_split_aln(params.aln_name, "05_B1C2D12_split_aln", B1C1204_mast.out.class_2, "fasta", params.nthreads)
+    B12D1205_split_aln(params.aln_name, "05_B1C2D12_split_aln", B1C1204_mast.out.class_2, "fasta", params.nthreads)
+
 }

@@ -79,11 +79,13 @@ workflow mast {
             .branch {
                 class_1: it =~ /class_1/
                 class_2: it =~ /class_2/
+                class_3: it =~ /class_3/
             } .set { splitted_aln }
 
     emit:
         class_1 = splitted_aln.class_1
         class_2 = splitted_aln.class_2
+        class_3 = splitted_aln.class_3
         bic = get_bic_t2_mast.out[0]
 
 }
