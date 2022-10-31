@@ -11,6 +11,8 @@ include {
 
 } from "./workflows.nf"
 
+include { compare_bic } from "./processes.nf"
+
 params.aln_ch = Channel
     .fromPath(params.aln)
 
@@ -78,6 +80,11 @@ workflow {
         .set { bic_all }
 
     bic_all.view()
+
     // Select the best performing three-tree mast 
     
+    x = bic_all.map { it -> it[2] }
+    y = bic_all.map { it -> it[3] }
+
+    compare_bic(x, y)
 }
