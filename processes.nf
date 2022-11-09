@@ -150,9 +150,9 @@ process evaluate_partitions {
      * AMAS compliant
      */
 
-    debug true
     publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
-
+    debug true
+    
     input:
         val aln_name
         val run_mode
@@ -164,11 +164,9 @@ process evaluate_partitions {
     shell:
     '''
     if ((`cat !{partition} | wc -l` == 4)); then
-        echo "\nAll sites in !{aln_name} were assigned to a single class."
-        exit 0
-    else
-        sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
+        echo "\nWARNING: All sites in !{run_mode} were assigned to a single class."
     fi
+        sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
     '''
 }
 

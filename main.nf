@@ -2,21 +2,26 @@ nextflow.enable.dsl = 2
 
 include {
 
-    split_aln as A01_split_aln;
-    mast as BC02_mast;
+    split_aln as split_aln_1;
 
-    split_aln as B03_split_aln;
-    split_aln as C03_split_aln;
-    mast as B1C1204_mast;
-    mast as B12C104_mast;
+    mast as mast_2A_2B;
 
-    split_aln as C12D1205_split_aln;
-    split_aln as B1C2D1205_split_aln;
-    split_aln as B1C1D1205_split_aln;
+    split_aln as split_aln_2A;
+    split_aln as split_aln_2B;
 
-    split_aln as B2C1D1205_split_aln;
-    split_aln as B1CD12105_split_aln;
-    split_aln as B12D1205_split_aln
+    mast as mast_2A_3BA_3BB;
+    mast as mast_3AA_3AB_2B;
+
+    split_aln as split_aln_3AA; 
+    split_aln as split_aln_3AB; 
+    split_aln as split_aln_3BA; 
+    split_aln as split_aln_3BB; 
+
+    mast as mast_2A_3BA_4BBA_4BBB; 
+    mast as mast_2A_4BAA_4BAB_3BB; 
+    mast as mast_4AAA_4AAB_3AB_2B; 
+    mast as mast_3AA_4ABA_4ABB_2B;
+    mast as mast_3AA_3AB_3BA_3BB
 
 } from "./workflows.nf"
 
@@ -30,7 +35,7 @@ params.aln_name = Channel
     .map { file -> file.simpleName }
 
 workflow {
-    
+
     log.info"""
     // Paths and directories
     base        = ${baseDir}
@@ -48,37 +53,36 @@ workflow {
     previous_model = ${params.previous_model}
     """
 
-    A01_split_aln(params.aln_name, "01_A_split_aln",  params.aln_ch, params.aln_format, params.nthreads)
-    A01_split_aln.out.bic.map{ it -> it.tokenize(" ") }.set{ bic_1 }
-
-    BC02_mast(params.aln_name, "02_BC_mast", params.aln_ch, params.aln_format, A01_split_aln.out.t2, "GTR+FO+G,GTR+FO+G", params.nthreads)
-    BC02_mast.out.bic.map{ it -> it.tokenize(" ") }.set{ bic_2 }
-
-    B03_split_aln(params.aln_name, "03_B_split_aln", BC02_mast.out.class_1, "fasta", params.nthreads)
-    C03_split_aln(params.aln_name, "03_C_split_aln", BC02_mast.out.class_2, "fasta", params.nthreads)
- 
     /*
-     * Mixing channels should be conducted outside of subworkflows to ensure
-     * all outputs are collected prior to downstream processes 
+     * 1-to-2 block split
      */
+    split_aln_1(params.aln_name, "01_split_aln", params.aln_ch, params.aln_format, params.nthreads)
+    split_aln_1.out.bic.map{ it -> it.tokenize(" ") }.set{ bic_1 }
 
-    B03_split_aln.out.t1.combine(C03_split_aln.out.t2).set { trees_B1C12 }
-    C03_split_aln.out.t1.combine(B03_split_aln.out.t2).set { trees_B12C1 }
+    /*
+     * 2-tree MAST
+     */
+    mast_2A_2B(params.aln_name, "02_mast_2A_2B", params.aln_ch, params.aln_format, split_aln_1.out.t2, "GTR+FO+G,GTR+FO+G", params.nthreads)
+    mast_2A_2B.out.bic.map{ it -> it.tokenize(" ") }.set{ bic_2 }
 
-    // Count number of trees output by i1_2a + i1_2b
-    // .collect(A1, A2, B1, B2).size()
-    // if n_trees == 2 : TERMINATE
-    // elif n_trees == 3 : mast()
-    // elif n_trees == 4:
-    //      .collect(A1, A2, B1).set{A1A2B1}
-    //      .collect(A1, B1, B2).set{A1A2B1}
+    /*
+     * 2_to_3 block splits
+     */
+    split_aln_2A(params.aln_name, "03_split_aln_2A", mast_2A_2B.out.class_1, "fasta", params.nthreads)
+    split_aln_2B(params.aln_name, "03_split_aln_2B", mast_2A_2B.out.class_2, "fasta", params.nthreads)
 
-    B1C1204_mast(params.aln_name, "04_B1C12_mast", params.aln_ch, params.aln_format, trees_B1C12, "GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
-    B12C104_mast(params.aln_name, "04_B12C1_mast", params.aln_ch, params.aln_format, trees_B12C1, "GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
+    /*
+     * 3_tree MAST
+     */
+    split_aln_2A.out.t1.concat(split_aln_2B.out.t2).set { trees_2A_3BA_3BB }
+    split_aln_2A.out.t2.concat(split_aln_2B.out.t1).set { trees_3AA_3AB_2B }
 
-    B1C1204_mast.out.bic.map { it -> it.tokenize(" ") }.set{ bic_3a }
-    B12C104_mast.out.bic.map { it -> it.tokenize(" ") }.set{ bic_3b }
-  
+    mast_2A_3BA_3BB(params.aln_name, "04_mast_2A_3BA_3BB", params.aln_ch, params.aln_format, trees_2A_3BA_3BB, "GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
+    mast_3AA_3AB_2B(params.aln_name, "04_mast_3AA_3AB_2B", params.aln_ch, params.aln_format, trees_3AA_3AB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
+
+    mast_2A_3BA_3BB.out.bic.map { it -> it.tokenize(" ") }.set{ bic_3a }
+    mast_3AA_3AB_2B.out.bic.map { it -> it.tokenize(" ") }.set{ bic_3b }
+
     // Combine BIC scores in a single data structure?
     bic_1
         .concat(bic_2)
@@ -90,19 +94,47 @@ workflow {
 
     bic_all.view()
 
-    // Select the best performing three-tree mast 
-    
-    x = bic_all.map { it -> it[2] }
-    y = bic_all.map { it -> it[3] }
+    /*
+     * 3_to_4 block splits
+     */
+    //2A split == 3AA_3AB
+    split_aln_3AA(params.aln_name, "05_split_aln_3AA", mast_3AA_3AB_2B.out.class_1, "fasta", params.nthreads)
+    split_aln_3AB(params.aln_name, "05_split_aln_3AB", mast_3AA_3AB_2B.out.class_2, "fasta", params.nthreads)
+    //2B split == 3BA_3BB
+    split_aln_3BA(params.aln_name, "05_split_aln_3BA", mast_2A_3BA_3BB.out.class_1, "fasta", params.nthreads)
+    split_aln_3BB(params.aln_name, "05_split_aln_3BB", mast_2A_3BA_3BB.out.class_2, "fasta", params.nthreads)
 
-    compare_bic(x, y)
-   
-    C12D1205_split_aln(params.aln_name, "05_C12D12_split_aln", B1C1204_mast.out.class_1, "fasta", params.nthreads)
-    B1C2D1205_split_aln(params.aln_name, "05_B1C2D12_split_aln", B1C1204_mast.out.class_2, "fasta", params.nthreads)
-    B1C1D1205_split_aln(params.aln_name, "05_B1C1D12_split_aln", B1C1204_mast.out.class_3, "fasta", params.nthreads)
+   /*
+    * 4_tree MAST
+    */
+    trees_2A_3BA_4BBA_4BBB =
+        split_aln_2A.out.t1
+        .concat(split_aln_3BA.out.t1)
+        .concat(split_aln_3BB.out.t2)
+    trees_2A_4BAA_4BAB_3BB =
+        split_aln_2A.out.t1
+        .concat(split_aln_3BA.out.t2)
+        .concat(split_aln_3BB.out.t1)
+    trees_4AAA_4AAB_3AB_2B =
+        split_aln_3AA.out.t2
+        .concat(split_aln_3AB.out.t1)
+        .concat(split_aln_2B.out.t1)
+    trees_2A_4BAA_4BAB_3BB =
+        split_aln_2A.out.t1
+        .concat(split_aln_3BA.out.t2)
+        .concat(split_aln_3BB.out.t1)
+    trees_3AA_4ABA_4ABB_2B =
+        split_aln_3AA.out.t1
+        .concat(split_aln_3AB.out.t2)
+        .concat(split_aln_2B.out.t1)
+    trees_3AA_3AB_3BA_3BB =
+        split_aln_2A.out.t2
+        .concat(split_aln_3BA.out.t2)
 
-    B2C1D1205_split_aln(params.aln_name, "05_B1C2D12_split_aln", B1C1204_mast.out.class_2, "fasta", params.nthreads)
-    B1CD12105_split_aln(params.aln_name, "05_B1C2D12_split_aln", B1C1204_mast.out.class_2, "fasta", params.nthreads)
-    B12D1205_split_aln(params.aln_name, "05_B1C2D12_split_aln", B1C1204_mast.out.class_2, "fasta", params.nthreads)
+    mast_2A_3BA_4BBA_4BBB(params.aln_name, "06_mast_2A_3BA_4BBA_4BBB", params.aln_ch, params.aln_format, trees_2A_3BA_4BBA_4BBB, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
+    mast_2A_4BAA_4BAB_3BB(params.aln_name, "06_mast_2A_4BAA_4BAB_3BB", params.aln_ch, params.aln_format, trees_2A_4BAA_4BAB_3BB, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
+    mast_4AAA_4AAB_3AB_2B(params.aln_name, "06_mast_4AAA_4AAB_3AB_2B", params.aln_ch, params.aln_format, trees_4AAA_4AAB_3AB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
+    mast_3AA_4ABA_4ABB_2B(params.aln_name, "06_mast_3AA_4ABA_4ABB_2B", params.aln_ch, params.aln_format, trees_3AA_4ABA_4ABB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
+    mast_3AA_3AB_3BA_3BB(params.aln_name, "06_mast_3AA_3AB_3BA_3BB", params.aln_ch, params.aln_format, trees_3AA_3AB_3BA_3BB, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
 
 }
