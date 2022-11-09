@@ -83,17 +83,6 @@ workflow {
     mast_2A_3BA_3BB.out.bic.map { it -> it.tokenize(" ") }.set{ bic_3a }
     mast_3AA_3AB_2B.out.bic.map { it -> it.tokenize(" ") }.set{ bic_3b }
 
-    // Combine BIC scores in a single data structure?
-    bic_1
-        .concat(bic_2)
-        .concat(bic_3a)
-        .concat(bic_3b)
-        .collect()
-        .map { it -> it.collate(2) } 
-        .set { bic_all }
-
-    bic_all.view()
-
     /*
      * 3_to_4 block splits
      */
@@ -136,5 +125,18 @@ workflow {
     mast_4AAA_4AAB_3AB_2B(params.aln_name, "06_mast_4AAA_4AAB_3AB_2B", params.aln_ch, params.aln_format, trees_4AAA_4AAB_3AB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
     mast_3AA_4ABA_4ABB_2B(params.aln_name, "06_mast_3AA_4ABA_4ABB_2B", params.aln_ch, params.aln_format, trees_3AA_4ABA_4ABB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
     mast_3AA_3AB_3BA_3BB(params.aln_name, "06_mast_3AA_3AB_3BA_3BB", params.aln_ch, params.aln_format, trees_3AA_3AB_3BA_3BB, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
+
+    /*
+     * Print BIC scores
+     */
+    bic_1
+        .concat(bic_2)
+        .concat(bic_3a)
+        .concat(bic_3b)
+        .collect()
+        .map { it -> it.collate(2) } 
+        .set { bic_all }
+
+    bic_all.view()
 
 }

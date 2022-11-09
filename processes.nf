@@ -220,6 +220,7 @@ process concatenate_trees_for_mast {
 
     debug true
     publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    errorStrategy "ignore"
 
     input:
         val aln_name
