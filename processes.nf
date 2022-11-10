@@ -220,7 +220,7 @@ process concatenate_trees_for_mast {
 
     debug true
     publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
-    errorStrategy "ignore"
+    //errorStrategy "ignore"
 
     input:
         val aln_name
@@ -234,39 +234,23 @@ process concatenate_trees_for_mast {
     shell:
     '''
     cat *.treefile > concat.treefile
+    echo "Concatenating trees for !{run_mode}"
+    echo "`cat concat.treefile | wc -l` trees will be input to MAST"
     '''
-}
-
-process iqtree_mast_t_r2 {
-
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
-
-    input:
-        path aln
-        val run_mode
-        val nthreads
-        path trees
-
-    output:
-        path '*.treefile'
-        path '*.log'
-        path '*.iqtree'
-        path '*.ckp.gz'
-        path '*.sitelh'
-        path '*.siteprob'
-        path '*.alninfo'
-
-    script:
-    """
-    iqtree2 -s ${aln} -pre ${trees.simpleName}_mast_t -nt ${nthreads} -te ${trees} \
-        -m "TMIX{GTR+FO+G,GTR+FO+G}+T" -nt ${nthreads} -wslr -wspr -alninfo
-    """
-    
 }
 
 process t2_iqtree_mast {
 
     publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    errorStrategy { task.exitStatus == 2 ? 'ignore' : 'terminate' } 
+    /*
+     * exitStatus == 2  
+     * ERROR: The number of submodels specified in the mixture does not match 
+     * with the tree number 
+     * 
+     * Due to concat trees having less trees with errirStrategy ignore 
+     *
+     */
 
     input:
         val aln_name

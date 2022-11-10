@@ -74,8 +74,8 @@ workflow {
     /*
      * 3_tree MAST
      */
-    split_aln_2A.out.t1.concat(split_aln_2B.out.t2).set { trees_2A_3BA_3BB }
-    split_aln_2A.out.t2.concat(split_aln_2B.out.t1).set { trees_3AA_3AB_2B }
+    split_aln_2A.out.t1.concat(split_aln_2B.out.t2).collect().set { trees_2A_3BA_3BB }
+    split_aln_2A.out.t2.concat(split_aln_2B.out.t1).collect().set { trees_3AA_3AB_2B }
 
     mast_2A_3BA_3BB(params.aln_name, "04_mast_2A_3BA_3BB", params.aln_ch, params.aln_format, trees_2A_3BA_3BB, "GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
     mast_3AA_3AB_2B(params.aln_name, "04_mast_3AA_3AB_2B", params.aln_ch, params.aln_format, trees_3AA_3AB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
@@ -100,31 +100,37 @@ workflow {
         split_aln_2A.out.t1
         .concat(split_aln_3BA.out.t1)
         .concat(split_aln_3BB.out.t2)
+        .collect()
     trees_2A_4BAA_4BAB_3BB =
         split_aln_2A.out.t1
         .concat(split_aln_3BA.out.t2)
         .concat(split_aln_3BB.out.t1)
+        .collect()
     trees_4AAA_4AAB_3AB_2B =
         split_aln_3AA.out.t2
         .concat(split_aln_3AB.out.t1)
         .concat(split_aln_2B.out.t1)
+        .collect()
     trees_2A_4BAA_4BAB_3BB =
         split_aln_2A.out.t1
         .concat(split_aln_3BA.out.t2)
         .concat(split_aln_3BB.out.t1)
+        .collect()
     trees_3AA_4ABA_4ABB_2B =
         split_aln_3AA.out.t1
         .concat(split_aln_3AB.out.t2)
         .concat(split_aln_2B.out.t1)
+        .collect()
     trees_3AA_3AB_3BA_3BB =
         split_aln_2A.out.t2
         .concat(split_aln_3BA.out.t2)
+        .collect()
 
-    mast_2A_3BA_4BBA_4BBB(params.aln_name, "06_mast_2A_3BA_4BBA_4BBB", params.aln_ch, params.aln_format, trees_2A_3BA_4BBA_4BBB, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
-    mast_2A_4BAA_4BAB_3BB(params.aln_name, "06_mast_2A_4BAA_4BAB_3BB", params.aln_ch, params.aln_format, trees_2A_4BAA_4BAB_3BB, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
-    mast_4AAA_4AAB_3AB_2B(params.aln_name, "06_mast_4AAA_4AAB_3AB_2B", params.aln_ch, params.aln_format, trees_4AAA_4AAB_3AB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
-    mast_3AA_4ABA_4ABB_2B(params.aln_name, "06_mast_3AA_4ABA_4ABB_2B", params.aln_ch, params.aln_format, trees_3AA_4ABA_4ABB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
-    mast_3AA_3AB_3BA_3BB(params.aln_name, "06_mast_3AA_3AB_3BA_3BB", params.aln_ch, params.aln_format, trees_3AA_3AB_3BA_3BB, "GTR+FO+G,GTR+FO+G,GTR+FO+G+GTR+FO+G", params.nthreads)
+    mast_2A_3BA_4BBA_4BBB(params.aln_name, "06_mast_2A_3BA_4BBA_4BBB", params.aln_ch, params.aln_format, trees_2A_3BA_4BBA_4BBB, "GTR+FO+G,GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
+    mast_2A_4BAA_4BAB_3BB(params.aln_name, "06_mast_2A_4BAA_4BAB_3BB", params.aln_ch, params.aln_format, trees_2A_4BAA_4BAB_3BB, "GTR+FO+G,GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
+    mast_4AAA_4AAB_3AB_2B(params.aln_name, "06_mast_4AAA_4AAB_3AB_2B", params.aln_ch, params.aln_format, trees_4AAA_4AAB_3AB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
+    mast_3AA_4ABA_4ABB_2B(params.aln_name, "06_mast_3AA_4ABA_4ABB_2B", params.aln_ch, params.aln_format, trees_3AA_4ABA_4ABB_2B, "GTR+FO+G,GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
+    mast_3AA_3AB_3BA_3BB(params.aln_name, "06_mast_3AA_3AB_3BA_3BB", params.aln_ch, params.aln_format, trees_3AA_3AB_3BA_3BB, "GTR+FO+G,GTR+FO+G,GTR+FO+G,GTR+FO+G", params.nthreads)
 
     /*
      * Print BIC scores
