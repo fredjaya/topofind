@@ -248,7 +248,7 @@ process t2_iqtree_mast {
      * ERROR: The number of submodels specified in the mixture does not match 
      * with the tree number 
      * 
-     * Due to concat trees having less trees with errirStrategy ignore 
+     * Due to concat trees having less trees with errorStrategy ignore 
      *
      */
 
@@ -275,6 +275,50 @@ process t2_iqtree_mast {
         -m "TMIX{"${mast_submodel}"}+TR" -T ${nthreads} -wslr -wspr -alninfo
     """
     
+}
+
+process mast_hmm {
+    // Use iqtree-2.2.0.8.mix.1.hmm with built-in hmm
+    // Replaces t2_iqtree_mast
+
+    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    errorStrategy { task.exitStatus == 2 ? 'ignore' : 'terminate' } 
+    /*
+     * exitStatus == 2  
+     * ERROR: The number of submodels specified in the mixture does not match 
+     * with the tree number 
+     * 
+     * Due to concat trees having less trees with errorStrategy ignore 
+     *
+     */
+
+    input:
+        val aln_name
+        val run_mode
+        path aln
+        path trees
+        val mast_submodel
+        val nthreads
+
+    output:
+        path '*.treefile'
+        path '*.log'
+        path '*.iqtree'
+        path '*.ckp.gz'
+        path '*.sitelh'
+        path '*.siteprob'
+        path '*.alninfo'
+        path '*.hmm'
+
+    script:
+    """
+    iqtree2 -s ${aln} -pre mast_hmm -te ${trees} \
+        -m "TMIX{"${mast_submodel}"}+TR" -T ${nthreads} -wslr -wspr -alninfo -hmm
+    """
+    
+}
+    
+
 }
 
 process get_bic {

@@ -53,7 +53,7 @@ workflow {
     """
 
     if( params.mode = "split_aln" )
-	//do stuff
+	    log.info"""split_aln"""
     else
     	log.info"""
 
