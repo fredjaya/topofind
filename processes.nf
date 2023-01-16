@@ -312,14 +312,11 @@ process mast_hmm {
 
     script:
     """
-    iqtree2 -s ${aln} -pre mast_hmm -te ${trees} \
-        -m "TMIX{"${mast_submodel}"}+TR" -T ${nthreads} -wslr -wspr -alninfo -hmm
+    iqtree2 -s ${aln} -pre mast_hmm -te ${trees} -m "TMIX{"${mast_submodel}"}+TR" -T ${nthreads} -wslr -wspr -alninfo -hmm
     """
     
 }
-    
 
-}
 
 process get_bic {
     // From *.iqtree for single tree reconstruction and MAST
