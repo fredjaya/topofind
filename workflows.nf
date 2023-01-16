@@ -26,24 +26,24 @@ workflow split_aln {
      */
     take:
         aln_name
-        run_mode
+        run_name
         aln_ch
         aln_format
         nthreads
 
     main:
-        t1_modelfinder_across_rhas_categories(aln_name, run_mode, aln_ch, nthreads)
-        keep_modelfinder_results(aln_name, run_mode, t1_modelfinder_across_rhas_categories.out[2])
-        best_model_per_rhas(aln_name, run_mode, keep_modelfinder_results.out)
+        t1_modelfinder_across_rhas_categories(aln_name, run_name, aln_ch, nthreads)
+        keep_modelfinder_results(aln_name, run_name, t1_modelfinder_across_rhas_categories.out[2])
+        best_model_per_rhas(aln_name, run_name, keep_modelfinder_results.out)
         best_model_per_rhas.out[2]
             .map { models_out -> store_models(models_out) }
             .set { models_list }
-        t1_iqtree_with_best_r2(aln_name, run_mode, aln_ch, nthreads, models_list.map { x -> x[1][0] } )
-        get_bic_t1_r2(aln_name, run_mode, t1_iqtree_with_best_r2.out[2])
-        hmm_assign_sites_t1_r2(aln_name, run_mode, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4])
-        evaluate_partitions(aln_name, run_mode, hmm_assign_sites_t1_r2.out[1])
-        amas_split(aln_name, run_mode, aln_ch, evaluate_partitions.out[0], aln_format)
-        t1_iqtree_per_split(aln_name, run_mode, amas_split.out[0].flatten(), nthreads)
+        t1_iqtree_with_best_r2(aln_name, run_name, aln_ch, nthreads, models_list.map { x -> x[1][0] } )
+        get_bic_t1_r2(aln_name, run_name, t1_iqtree_with_best_r2.out[2])
+        hmm_assign_sites_t1_r2(aln_name, run_name, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4])
+        evaluate_partitions(aln_name, run_name, hmm_assign_sites_t1_r2.out[1])
+        amas_split(aln_name, run_name, aln_ch, evaluate_partitions.out[0], aln_format)
+        t1_iqtree_per_split(aln_name, run_name, amas_split.out[0].flatten(), nthreads)
 
     emit:
         t1 = t1_iqtree_with_best_r2.out[0]
@@ -60,7 +60,7 @@ workflow mast {
 
     take:
         aln_name
-        run_mode
+        run_name
         aln_ch
         aln_format
         trees
@@ -68,12 +68,12 @@ workflow mast {
         nthreads
 
     main:
-        concatenate_trees_for_mast(aln_name, run_mode, aln_ch, trees)
-        t2_iqtree_mast(aln_name, run_mode, aln_ch, concatenate_trees_for_mast.out[0], mast_submodel, nthreads)
-        get_bic_t2_mast(aln_name, run_mode, t2_iqtree_mast.out[2])
-        hmm_assign_sites_mast(aln_name, run_mode, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6])
-        evaluate_partitions(aln_name, run_mode, hmm_assign_sites_mast.out[1])
-        amas_split(aln_name, run_mode, aln_ch, evaluate_partitions.out[0], aln_format)
+        concatenate_trees_for_mast(aln_name, run_name, aln_ch, trees)
+        t2_iqtree_mast(aln_name, run_name, aln_ch, concatenate_trees_for_mast.out[0], mast_submodel, nthreads)
+        get_bic_t2_mast(aln_name, run_name, t2_iqtree_mast.out[2])
+        hmm_assign_sites_mast(aln_name, run_name, t2_iqtree_mast.out[4], t2_iqtree_mast.out[6])
+        evaluate_partitions(aln_name, run_name, hmm_assign_sites_mast.out[1])
+        amas_split(aln_name, run_name, aln_ch, evaluate_partitions.out[0], aln_format)
         amas_split.out[0]
             .flatten()
             .branch {

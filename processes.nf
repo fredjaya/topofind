@@ -13,11 +13,11 @@ process t1_modelfinder_across_rhas_categories {
      *     k FreeRate categories
      */
     
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
 
     input:
         val aln_name
-        val run_mode
+        val run_name
         path aln
         val nthreads
 
@@ -41,11 +41,11 @@ process t1_modelfinder_across_rhas_categories {
 process keep_modelfinder_results {
     // Keep only ModelFinder results from .log
 
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
 
     input:
         val aln_name
-        val run_mode
+        val run_name
         path log
 
     output:
@@ -65,11 +65,11 @@ process best_model_per_rhas {
 
     debug "true"
 
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
 
     input:
         val aln_name
-        val run_mode
+        val run_name
         path models_only
 
     output:
@@ -92,11 +92,11 @@ process t1_iqtree_with_best_r2 {
      * r2: k=2 rate categories
      */
 
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
 
     input:
         val aln_name
-        val run_mode
+        val run_name
         path aln
         val nthreads
         val model
@@ -124,11 +124,11 @@ process t1_iqtree_with_best_r2 {
 process hmm_assign_sites {
     // Assign sites to FreeRate classes or tree mixtures with the HMM
 
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
 
     input:
         val aln_name 
-        val run_mode
+        val run_name
         path sitelh 
         path alninfo
 
@@ -138,7 +138,7 @@ process hmm_assign_sites {
 
     script:
     """
-    hmm_assign_sites.R ${sitelh} ${alninfo} ${run_mode}
+    hmm_assign_sites.R ${sitelh} ${alninfo} ${run_name}
     """ 
 }
 
@@ -150,12 +150,12 @@ process evaluate_partitions {
      * AMAS compliant
      */
 
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
     debug true
     
     input:
         val aln_name
-        val run_mode
+        val run_name
         path partition
 
     output:
@@ -164,7 +164,7 @@ process evaluate_partitions {
     shell:
     '''
     if ((`cat !{partition} | wc -l` == 4)); then
-        echo "\nWARNING: All sites in !{run_mode} were assigned to a single class."
+        echo "\nWARNING: All sites in !{run_name} were assigned to a single class."
     fi
         sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
     '''
@@ -173,11 +173,11 @@ process evaluate_partitions {
 process amas_split {
     // Split alignment according to class partitions
    
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
 
     input:
         val aln_name
-        val run_mode
+        val run_name
         path aln
         path partition
         val aln_format
@@ -194,11 +194,11 @@ process amas_split {
 process t1_iqtree_per_split {
 
     //errorStrategy { task.exitStatus == 2 ? "ignore" : "terminate" }
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
 
     input:
         val aln_name
-        val run_mode
+        val run_name
         each path(splitted_aln)
         val nthreads
 
@@ -219,12 +219,12 @@ process concatenate_trees_for_mast {
     // Combine trees from partitioned sites for MAST input
 
     debug true
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
     //errorStrategy "ignore"
 
     input:
         val aln_name
-        val run_mode
+        val run_name
         path aln
         path "*.treefile"
 
@@ -234,14 +234,14 @@ process concatenate_trees_for_mast {
     shell:
     '''
     cat *.treefile > concat.treefile
-    echo "Concatenating trees for !{run_mode}"
+    echo "Concatenating trees for !{run_name}"
     echo "`cat concat.treefile | wc -l` trees will be input to MAST"
     '''
 }
 
 process t2_iqtree_mast {
 
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
     errorStrategy { task.exitStatus == 2 ? 'ignore' : 'terminate' } 
     /*
      * exitStatus == 2  
@@ -254,7 +254,7 @@ process t2_iqtree_mast {
 
     input:
         val aln_name
-        val run_mode
+        val run_name
         path aln
         path trees
         val mast_submodel
@@ -281,7 +281,7 @@ process mast_hmm {
     // Use iqtree-2.2.0.8.mix.1.hmm with built-in hmm
     // Replaces t2_iqtree_mast
 
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
     errorStrategy { task.exitStatus == 2 ? 'ignore' : 'terminate' } 
     /*
      * exitStatus == 2  
@@ -294,7 +294,7 @@ process mast_hmm {
 
     input:
         val aln_name
-        val run_mode
+        val run_name
         path aln
         path trees
         val mast_submodel
@@ -322,11 +322,11 @@ process get_bic {
     // From *.iqtree for single tree reconstruction and MAST
     // Then append to existing models
     
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
 
     input:
         val aln_name 
-        val run_mode
+        val run_name
         path iqtree 
 
     output:
@@ -334,7 +334,7 @@ process get_bic {
 
     shell:
     '''
-    MODEL=!{run_mode}
+    MODEL=!{run_name}
     BIC=`grep BIC !{iqtree} | sed -E 's/^.+ //g'`
     LINE=`echo -e "${MODEL}\t${BIC}"`
     '''
@@ -342,7 +342,7 @@ process get_bic {
 
 process compare_bic {
 
-    publishDir "${params.out}/${aln_name}/${run_mode}", mode: "copy"
+    publishDir "${params.out}/${aln_name}/${run_name}", mode: "copy"
     debug "true"
 
     input:
