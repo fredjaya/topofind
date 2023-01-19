@@ -49,7 +49,7 @@ def get_bic(iqtree_out_path):
     bic=re.sub("^.+: ", "", line)
     return(float(bic))
 
-def read_subtrees(tree_file, tree_names):
+def collect_subtrees(tree_file, tree_names):
     # Possibly need to read in partitions for the trees as well
     with open (tree_file, "r") as file:
         subtrees = {}
@@ -57,7 +57,28 @@ def read_subtrees(tree_file, tree_names):
             subtrees[tree_name] = line.strip()
     return(subtrees)
 
-def parse_outputs(aln, run_name):
+def collect_alns(aln_glob, tree_names):
+    aln_files={}
+    for aln_file, tree_name in zip(sorted(aln_glob), tree_names):
+        aln_files[tree_name] = aln_file
+    return(aln_files)
+
+def recurse_trees(tree_list):
+    """
+    This operates on a list of existing trees and makes a new
+    list of trees for the next iteration
+    """
+    if tree_list == "0":
+        return(['A', 'B'])
+    else:
+        t0 = str(tree_list[0])
+        t1 = f"{t0}A" 
+        t2 = f"{t0}B"
+        tree_list += [t1, t2]
+        tree_list.remove(t0)
+        return(tree_list)
+
+def parse_outputs(aln, run_name, new_tree_names):
     aln_name=just_file(aln)
     out_path=f"{args.output_dir}/{aln_name}/{run_name}"
 
@@ -66,18 +87,13 @@ def parse_outputs(aln, run_name):
     bic=get_bic(iqtree_out_path)
 
     # Collect subtrees used as input to mast
-    ## Name of tree
-    ## Tree partitions
-    ## Topologies
-    tree_names = ['A', 'B']
-    subtrees=read_subtrees(f"{out_path}/concat.treefile", tree_names)
+    subtrees=collect_subtrees(f"{out_path}/concat.treefile", new_tree_names)
 
     # Collect fastas post-HMM assignment
     ## Get partitions
     ## Get alignment files
-    aln_file=glob.glob(f"{out_path}/*.fas")
-
-    return(bic, in_trees)
+    alns=collect_alns(glob.glob(f"{out_path}/*.fas"), new_tree_names)
+    return(bic, subtrees, alns)
 
 def run_iteration(aln, run_name, Results):
     """
@@ -86,32 +102,21 @@ def run_iteration(aln, run_name, Results):
     #run_nf(aln, run_name)
     
     """
-    Parse and save the output to the Results dict
+    Parse and save iteration outputs to the Results dict
     """
-    bic, in_trees = parse_outputs(aln, run_name)
+    tree_names = '0'
+    new_names = recurse_trees(tree_names)
+
+    bic, subtrees, alns = parse_outputs(aln, run_name, new_names)
     temp_dict = {}
     temp_dict[run_name] = {
             "bic": bic,
-            "trees": in_trees, 
-            "aln": {}
+            "input_trees": subtrees, 
+            "aln": alns
             }
     print(temp_dict)
-    """
-    Store in the main Results dictionary
-    """
     return(temp_dict)
 
-def recurse_trees(tree_list):
-    """
-    This operates on a list of existing trees and makes a new
-    list of trees for the next iteration
-    """
-    if tree_list == "0":
-        print("0")
-    else:
-        new_trees = tree_list
-
-    return(new_trees)
 if __name__ == '__main__':
     """
     Initialise variables and Results dictionary
