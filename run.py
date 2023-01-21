@@ -58,8 +58,10 @@ def collect_subtrees(tree_file, tree_names):
     return(subtrees)
 
 def collect_alns(aln_glob, tree_names):
+    # Add primes to end of tree_names as partitions are updated after MAST
+    tree_primes = [s + "′" for s in tree_names]
     aln_files={}
-    for aln_file, tree_name in zip(sorted(aln_glob), tree_names):
+    for aln_file, tree_name in zip(sorted(aln_glob), tree_primes):
         aln_files[tree_name] = aln_file
     return(aln_files)
 
@@ -68,34 +70,42 @@ def recurse_trees(tree_list):
     This operates on a list of existing trees and makes a new
     list of trees for the next iteration
     """
-    if tree_list == "0":
+    if tree_list == None:
         return(['A', 'B'])
     else:
-        t0 = str(tree_list[0])
+        t0 = str(new_list[0])
         t1 = f"{t0}A" 
         t2 = f"{t0}B"
-        tree_list += [t1, t2]
-        tree_list.remove(t0)
-        return(tree_list)
+        new_list += [t1, t2]
+        new_list.remove(t0)
+        return(new_list)
 
-def parse_outputs(aln, run_name, new_tree_names):
+def parse_outputs(aln, run, new_trees):
     aln_name=just_file(aln)
-    out_path=f"{args.output_dir}/{aln_name}/{run_name}"
+    out_path=f"{args.output_dir}/{aln_name}/{run}"
 
     # Record MAST BIC
     iqtree_out_path=f"{out_path}/t2_mast_tr.iqtree"
     bic=get_bic(iqtree_out_path)
 
     # Collect subtrees used as input to mast
-    subtrees=collect_subtrees(f"{out_path}/concat.treefile", new_tree_names)
+    subtrees=collect_subtrees(f"{out_path}/concat.treefile", new_trees)
 
     # Collect fastas post-HMM assignment
     ## Get partitions
     ## Get alignment files
-    alns=collect_alns(glob.glob(f"{out_path}/*.fas"), new_tree_names)
+    alns=collect_alns(glob.glob(f"{out_path}/*.fas"), new_trees)
     return(bic, subtrees, alns)
 
-def run_iteration(aln, run_name, Results):
+def run_iteration(aln, tree_names, n_iter, Results):
+    """
+    Update names for current iteration
+    """
+    n_iter+=1
+    new_trees = recurse_trees(tree_names)
+    run=f"{n_iter}_{'_'.join(new_trees)}"
+
+    print(f"\nRunning {run}...\n")
     """
     Run split_aln and MAST == one iteration
     """
@@ -104,12 +114,9 @@ def run_iteration(aln, run_name, Results):
     """
     Parse and save iteration outputs to the Results dict
     """
-    tree_names = '0'
-    new_names = recurse_trees(tree_names)
-
-    bic, subtrees, alns = parse_outputs(aln, run_name, new_names)
+    bic, subtrees, alns = parse_outputs(aln, run, new_trees)
     temp_dict = {}
-    temp_dict[run_name] = {
+    temp_dict[run] = {
             "bic": bic,
             "input_trees": subtrees, 
             "aln": alns
@@ -124,15 +131,12 @@ if __name__ == '__main__':
     args=set_args()
     repo_path=os.path.dirname(__file__)
     aln=args.aln
-    run_name = "iter1"
+    tree_names=None
+    Results=None
+    n_iter=0
 
-    Results = dict.fromkeys(['bic', 'trees', 'aln']) 
-    Results['trees'] = dict.fromkeys(['name', 'partitions', 'topology'])
-    Results['aln'] = dict.fromkeys(['partitions', 'file'])
-    
     """
     Take an input alignment, construct two subtrees from +R2 site assignment,
     input subtrees to MAST
     """
-    print("\nPartitioning sites according to rate category assignments, and making subtrees...\n")
-    Results_test = run_iteration(aln, run_name, Results)
+    Results_test = run_iteration(aln, tree_names, n_iter, Results)
