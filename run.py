@@ -17,13 +17,14 @@ def set_args():
     args = parser.parse_args()
     return(args)
 
-def run_nf(aln, run_name):
+def nf_first_iter(aln, run_name, mode):
     subprocess.run(["nextflow", "run", f"{repo_path}/python.nf",
         "--aln", args.aln,
         "--aln_format", args.aln_format,
         "--run_name", run_name,
         "--out", args.output_dir,
         "--nthreads", str(args.num_threads),
+        "--mode", mode, 
         "-profile", args.executor],
         capture_output=args.verbose)
 
@@ -81,43 +82,43 @@ def parse_outputs(aln, run, new_trees):
     aln_name=just_file(aln)
     out_path=f"{args.output_dir}/{aln_name}/{run}"
 
-    # Record MAST BIC
+    '''Record MAST BIC'''
     iqtree_out_path=f"{out_path}/t2_mast_tr.iqtree"
     bic=get_bic(iqtree_out_path)
 
-    # Collect subtrees used as input to mast
+    '''Collect subtrees used as input to mast'''
     subtrees=collect_subtrees(f"{out_path}/concat.treefile", new_trees)
 
-    # Collect fastas post-HMM assignment
+    '''Collect fastas post-HMM assignment'''
     ## Get partitions
     ## Get alignment files
     alns=collect_alns(glob.glob(f"{out_path}/*.fas"), new_trees)
     return(bic, subtrees, alns)
 
-def run_iteration(aln, tree_names, n_iter, Results):
+def run_first_iter(aln, tree_names, n_iter, Results):
     """
     Update names for current iteration
     """
     n_iter+=1
     new_trees = recurse_trees(tree_names, 0)
-    run=f"{n_iter}_{'_'.join(new_trees)}"
-    print(f"\nRunning {run}...\n")
+    run_name=f"{n_iter}_{'_'.join(new_trees)}"
+    print(f"\nRunning {run_name}...\n")
 
     """
     Run split_aln and MAST == one iteration
     """
-    #run_nf(aln, run_name)
+    #nf_first_iter(aln, run_name, "first_iter")
     
     """
     Parse and save iteration outputs to the Results dict
     """
-    bic, subtrees, alns = parse_outputs(aln, run, new_trees)
-    Results[run] = {
+    bic, subtrees, alns = parse_outputs(aln, run_name, new_trees)
+    Results[run_name] = {
             "bic": bic,
             "input_trees": subtrees, 
             "aln": alns
             }
-    return(Results, run, n_iter, new_trees)
+    return(Results, run_name, n_iter, new_trees)
 
 def get_n_last_runs():
     """
@@ -137,36 +138,18 @@ if __name__ == '__main__':
     Results=OrderedDict()
 
     """
-    Take an input alignment, construct two subtrees from +R2 site assignment,
+    Run the first iteration. Take an input alignment, 
+    construct two  from +R2 site assignment,
     input subtrees to MAST
     """
-    if n_iter < 2 : 
-        '''Always run two iterations'''
-        Results, prev_runs, n_iter, tree_names = run_iteration(aln, tree_names, n_iter, Results)
-        #n_last_runs=
-        #last_runs=list(Results.keys())[n_last_runs]
-        '''Get list of tree combinations for next iteration'''
-        n_iter+=1
-        for i in range(0, len(tree_names)):
-            '''Name the run'''
-            tree_list=recurse_trees(tree_names, i)
-            run=f"{n_iter}_{'_'.join(tree_list)}"
-            Results[run] = {}
-            '''Add required input trees'''
-            Results[run]["input_trees"] = tree_list
-        print(Results)
-        '''Get output alignments/partitions from previous iteration'''
-        pool_cmds=[
-            list(Results[prev_runs]['aln'].values()), 
-            list(Results[prev_runs]['aln'].keys()),
-            n_iter, 
-            Results
-            ]
-
-        #print(pool_cmds)
-        '''with multiprocessing.Pool() as pool:
-            pool.map(run_iteration, pool_cmds)'''
-        #run_iteration(list(Results[prev_runs]['aln'].values())[0], list(Results[prev_runs]['aln'].keys())[0], n_iter, Results)
-
-    else:
-        print("else")
+    Results, prev_runs, n_iter, tree_names = run_first_iter(aln, tree_names, n_iter, Results)
+    '''Get list of tree combinations for next iteration'''
+    n_iter+=1
+    for i in range(0, len(tree_names)):
+        '''Name the run'''
+        tree_list=recurse_trees(tree_names, i)
+        run=f"{n_iter}_{'_'.join(tree_list)}"
+        Results[run] = {}
+        '''Add required input trees'''
+        Results[run]["input_trees"] = tree_list
+    print(Results)

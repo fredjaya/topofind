@@ -16,7 +16,20 @@ params.aln_name = Channel
 
 workflow {
 
+    if( params.mode == "first_iter" ) {
         split_aln(params.aln_name, params.run_name, params.aln_ch, params.aln_format, params.nthreads)
         mast(params.aln_name, params.run_name, params.aln_ch, params.aln_format, split_aln.out.t2, "GTR+FO+G,GTR+FO+G", params.nthreads)
+    }
 
+    if( params.mode == "split_aln" ) {        
+        params.trees_ch = Channel
+            .fromPath(params.trees)
+        split_aln(params.aln_name, params.run_name, params.aln_ch, params.aln_format, params.nthreads)
+    }
+
+    if( params.mode == "mast" ) {
+        params.trees_ch = Channel
+            .fromPath(params.trees)
+        mast(params.aln_name, params.run_name, params.aln_ch, params.aln_format, params.trees_ch, params.submodel, params.nthreads)
+    }
 }
