@@ -16,9 +16,28 @@ params.aln_name = Channel
 
 workflow {
 
+    log.info"""                              
+    // Paths and directories                 
+    base        = ${baseDir}                 
+    out         = ${params.out}              
+                                             
+    // Resource usage                        
+    nthreads    = ${params.nthreads}         
+                                             
+    // Input alignment                       
+    aln         = ${params.aln}              
+    aln_format  = ${params.aln_format}       
+                                             
+    // Python/CLI
+    mode        = ${params.mode}
+    run_name    = ${params.run_name}
+    trees       = ${params.trees}
+    submodel    = ${params.submodel}
+    """
+
     if( params.mode == "first_iter" ) {
         split_aln(params.aln_name, params.run_name, params.aln_ch, params.aln_format, params.nthreads)
-        mast(params.aln_name, params.run_name, params.aln_ch, params.aln_format, split_aln.out.t2, "GTR+FO+G,GTR+FO+G", params.nthreads)
+        mast(params.aln_name, params.run_name, params.aln_ch, params.aln_format, split_aln.out.t2, params.submodel, params.nthreads)
     }
 
     if( params.mode == "split_aln" ) {        

@@ -17,14 +17,16 @@ def set_args():
     args = parser.parse_args()
     return(args)
 
-def nf_first_iter(aln, run_name, mode):
+def run_nf(aln, run_name, mode, trees, submodel):
     subprocess.run(["nextflow", "run", f"{repo_path}/python.nf",
-        "--aln", args.aln,
+        "--aln", aln,
         "--aln_format", args.aln_format,
         "--run_name", run_name,
         "--out", args.output_dir,
         "--nthreads", str(args.num_threads),
         "--mode", mode, 
+        "--trees", trees, 
+        "--submodel", submodel, 
         "-profile", args.executor],
         capture_output=args.verbose)
 
@@ -107,7 +109,7 @@ def run_first_iter(aln, tree_names, n_iter, Results):
     """
     Run split_aln and MAST == one iteration
     """
-    #nf_first_iter(aln, run_name, "first_iter")
+    run_nf(args.aln, run_name, "first_iter", "null", "GTR+FO+G,GTR+FO+G")
     
     """
     Parse and save iteration outputs to the Results dict
@@ -119,6 +121,24 @@ def run_first_iter(aln, tree_names, n_iter, Results):
             "aln": alns
             }
     return(Results, run_name, n_iter, new_trees)
+
+def split_aln(tree_names, n_iter):
+
+    print(f"Assigning sites in {aln_name} to +R2 rate categories and making trees for each partition.\n")
+    print(f"Trees: {tree_names}\n")
+
+    run_name=f"{n_iter}_split_{'_'.join(tree_names)}"
+    #run_nf(args.aln, run_name, "split_aln", "null", "null") 
+
+    temp_out=f"{args.output_dir}/{run_name}"
+    print(f"Done! Files output to {temp_out}\n")
+
+    '''Save trees'''
+    trees=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
+    for key, val in zip(tree_names, trees):
+        PartitionedTrees[key] = val
+
+    return
 
 def get_n_last_runs():
     """
@@ -132,17 +152,43 @@ if __name__ == '__main__':
     """
     args=set_args()
     repo_path=os.path.dirname(__file__)
-    aln=args.aln
-    n_iter=0
-    tree_names=None
-    Results=OrderedDict()
+    aln_name=os.path.basename(args.aln)
+    n_iter=1
+    tree_names=['A', 'B']
+    PartitionedTrees=OrderedDict()
+    MastResults=OrderedDict()
 
-    """
-    Run the first iteration. Take an input alignment, 
-    construct two  from +R2 site assignment,
-    input subtrees to MAST
+    print(f"\n\
+        aln:            {args.aln}\n\
+        aln_format:     {args.aln_format}\n\
+        output_dir:     {args.output_dir}\n\
+        num_threads:    {args.num_threads}\n\
+        nf_executor:    {args.executor}\n"
+        )
+   
+    split_aln(tree_names, n_iter)
+
+    #run_nf(args.aln, run_name, "split_aln", "null", "null") 
     """
     Results, prev_runs, n_iter, tree_names = run_first_iter(aln, tree_names, n_iter, Results)
+    print(Results)
+    print(prev_runs)
+    
+    '''Run split_aln on one output alignment'''
+    print(list(Results[prev_runs]['aln'])[0])
+
+    for aln_name, file in Results[prev_runs]['aln'].items():
+        print(f"\nSplitting partition {aln_name}")
+        print(file)
+        run_nf(
+            aln = file,
+            run_name = f"{prev_runs}/{aln_name}",
+            mode = "split_aln",
+            trees = "null",
+            submodel = "null"
+        )
+    '''Run split_aln on both output alignments in parallel'''
+
     '''Get list of tree combinations for next iteration'''
     n_iter+=1
     for i in range(0, len(tree_names)):
@@ -152,4 +198,4 @@ if __name__ == '__main__':
         Results[run] = {}
         '''Add required input trees'''
         Results[run]["input_trees"] = tree_list
-    print(Results)
+    """
