@@ -4,15 +4,7 @@ import subprocess
 import re
 import glob
 import multiprocessing 
-
-class IterationResults:
-    """
-    Class to save the output of a split_aln and MAST iteration
-    """
-    def __init__(self):
-        self.in_trees = None 
-        self.mast_bic = None
-        self.mast_alns = None 
+from collections import OrderedDict
 
 def set_args():
     parser = argparse.ArgumentParser()
@@ -35,9 +27,9 @@ def run_nf(aln, run_name):
         "-profile", args.executor],
         capture_output=args.verbose)
 
-def pool_iterations(alns):
+def pool_iterations(aln, tree_names, n_iter, Results):
     with multiprocessing.Pool() as pool:
-        pool.map(run_iteration, alns)
+        pool.map(run_iteration, aln, tree_names, n_iter, Results)
 
 def just_file(path):
     base=os.path.basename(path)
@@ -65,7 +57,7 @@ def collect_alns(aln_glob, tree_names):
         aln_files[tree_name] = aln_file
     return(aln_files)
 
-def recurse_trees(tree_list):
+def recurse_trees(tree_list, pos):
     """
     This operates on a list of existing trees and makes a new
     list of trees for the next iteration
@@ -73,12 +65,17 @@ def recurse_trees(tree_list):
     if tree_list == None:
         return(['A', 'B'])
     else:
-        t0 = str(new_list[0])
-        t1 = f"{t0}A" 
-        t2 = f"{t0}B"
-        new_list += [t1, t2]
-        new_list.remove(t0)
-        return(new_list)
+        try:
+            new_list=tree_list.copy()
+            t0 = str(new_list[pos])
+            t1 = f"{t0}A" 
+            t2 = f"{t0}B"
+            new_list += [t1, t2]
+            new_list.remove(t0)
+            return(new_list)
+        except AttributeError:
+            '''When tree_list==None, you cant .copy()'''
+            pass
 
 def parse_outputs(aln, run, new_trees):
     aln_name=just_file(aln)
@@ -102,10 +99,10 @@ def run_iteration(aln, tree_names, n_iter, Results):
     Update names for current iteration
     """
     n_iter+=1
-    new_trees = recurse_trees(tree_names)
+    new_trees = recurse_trees(tree_names, 0)
     run=f"{n_iter}_{'_'.join(new_trees)}"
-
     print(f"\nRunning {run}...\n")
+
     """
     Run split_aln and MAST == one iteration
     """
@@ -115,14 +112,18 @@ def run_iteration(aln, tree_names, n_iter, Results):
     Parse and save iteration outputs to the Results dict
     """
     bic, subtrees, alns = parse_outputs(aln, run, new_trees)
-    temp_dict = {}
-    temp_dict[run] = {
+    Results[run] = {
             "bic": bic,
             "input_trees": subtrees, 
             "aln": alns
             }
-    print(temp_dict)
-    return(temp_dict)
+    return(Results, run, n_iter, new_trees)
+
+def get_n_last_runs():
+    """
+    Calculate how many combinations of trees were input to MAST
+    in the last iteration
+    """
 
 if __name__ == '__main__':
     """
@@ -131,12 +132,41 @@ if __name__ == '__main__':
     args=set_args()
     repo_path=os.path.dirname(__file__)
     aln=args.aln
-    tree_names=None
-    Results=None
     n_iter=0
+    tree_names=None
+    Results=OrderedDict()
 
     """
     Take an input alignment, construct two subtrees from +R2 site assignment,
     input subtrees to MAST
     """
-    Results_test = run_iteration(aln, tree_names, n_iter, Results)
+    if n_iter < 2 : 
+        '''Always run two iterations'''
+        Results, prev_runs, n_iter, tree_names = run_iteration(aln, tree_names, n_iter, Results)
+        #n_last_runs=
+        #last_runs=list(Results.keys())[n_last_runs]
+        '''Get list of tree combinations for next iteration'''
+        n_iter+=1
+        for i in range(0, len(tree_names)):
+            '''Name the run'''
+            tree_list=recurse_trees(tree_names, i)
+            run=f"{n_iter}_{'_'.join(tree_list)}"
+            Results[run] = {}
+            '''Add required input trees'''
+            Results[run]["input_trees"] = tree_list
+        print(Results)
+        '''Get output alignments/partitions from previous iteration'''
+        pool_cmds=[
+            list(Results[prev_runs]['aln'].values()), 
+            list(Results[prev_runs]['aln'].keys()),
+            n_iter, 
+            Results
+            ]
+
+        #print(pool_cmds)
+        '''with multiprocessing.Pool() as pool:
+            pool.map(run_iteration, pool_cmds)'''
+        #run_iteration(list(Results[prev_runs]['aln'].values())[0], list(Results[prev_runs]['aln'].keys())[0], n_iter, Results)
+
+    else:
+        print("else")
