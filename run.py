@@ -122,21 +122,7 @@ def run_first_iter(aln, tree_names, n_iter, Results):
             }
     return(Results, run_name, n_iter, new_trees)
 
-def split_aln(tree_names, n_iter):
-
-    print(f"Assigning sites in {aln_name} to +R2 rate categories and making trees for each partition.\n")
-    print(f"Trees: {tree_names}\n")
-
-    run_name=f"{n_iter}_split_{'_'.join(tree_names)}"
-    #run_nf(args.aln, run_name, "split_aln", "null", "null") 
-
-    temp_out=f"{args.output_dir}/{run_name}"
-    print(f"Done! Files output to {temp_out}\n")
-
-    '''Save trees'''
-    trees=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
-    for key, val in zip(tree_names, trees):
-        PartitionedTrees[key] = val
+def split_aln(aln_name, tree_names, run_name, temp_out):
 
     return
 
@@ -166,9 +152,35 @@ if __name__ == '__main__':
         nf_executor:    {args.executor}\n"
         )
    
-    split_aln(tree_names, n_iter)
+    run_name=f"{n_iter}_split_{'_'.join(tree_names)}"
+    temp_out=f"{args.output_dir}/{run_name}"
+   
+    """split_aln"""
+    print(f"Assigning sites in {aln_name} to +R2 rate categories and making trees for each partition.\n")
+    print(f"Trees: {tree_names}\n")
 
     #run_nf(args.aln, run_name, "split_aln", "null", "null") 
+    print(f"Done! Files output to {temp_out}\n")
+
+    '''Save trees'''
+    trees=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
+    for key, val in zip(tree_names, trees):
+        PartitionedTrees[key] = val
+
+    '''mast time'''
+    '''First, concatenate tree files'''
+
+    run_name=f"{n_iter}_mast_{'_'.join(tree_names)}"
+    temp_out=f"{args.output_dir}/{run_name}"
+    concat_tree=f"{temp_out}/concat.treefile"
+    if not os.path.exists(temp_out):
+        os.mkdir(temp_out)
+    
+    with open(concat_tree, "w") as file:
+        subprocess.run(["cat"] + list(PartitionedTrees.values()), stdout=file)
+
+    run_nf(args.aln, run_name, "mast", concat_tree, "GTR+FO+G,GTR+FO+G")
+
     """
     Results, prev_runs, n_iter, tree_names = run_first_iter(aln, tree_names, n_iter, Results)
     print(Results)
