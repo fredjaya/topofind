@@ -97,33 +97,21 @@ def parse_outputs(aln, run, new_trees):
     alns=collect_alns(glob.glob(f"{out_path}/*.fas"), new_trees)
     return(bic, subtrees, alns)
 
-def run_first_iter(aln, tree_names, n_iter, Results):
-    """
-    Update names for current iteration
-    """
-    n_iter+=1
-    new_trees = recurse_trees(tree_names, 0)
-    run_name=f"{n_iter}_{'_'.join(new_trees)}"
-    print(f"\nRunning {run_name}...\n")
+def split_aln(aln, n_iter, tree_names, PartitionedTrees):
+    run_name=f"{n_iter}_split_{'_'.join(tree_names)}"
+    temp_out=f"{args.output_dir}/{run_name}"
+    aln_name=os.path.basename(aln)
 
-    """
-    Run split_aln and MAST == one iteration
-    """
-    run_nf(args.aln, run_name, "first_iter", "null", "GTR+FO+G,GTR+FO+G")
-    
-    """
-    Parse and save iteration outputs to the Results dict
-    """
-    bic, subtrees, alns = parse_outputs(aln, run_name, new_trees)
-    Results[run_name] = {
-            "bic": bic,
-            "input_trees": subtrees, 
-            "aln": alns
-            }
-    return(Results, run_name, n_iter, new_trees)
+    print(f"[{run_name}]\tAssigning sites in {aln_name} to +R2 rate categories and making trees for each partition.")
+    print(f"[{run_name}]\tOutput trees: {tree_names}")
 
-def split_aln(aln_name, tree_names, run_name, temp_out):
+    run_nf(aln, run_name, "split_aln", "null", "null") 
+    print(f"[{run_name}]\tDone! Files output to {temp_out}")
 
+    '''Save trees to dict'''
+    trees=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
+    for key, val in zip(tree_names, trees):
+        PartitionedTrees[key] = val
     return
 
 def get_n_last_runs():
@@ -138,7 +126,6 @@ if __name__ == '__main__':
     """
     args=set_args()
     repo_path=os.path.dirname(__file__)
-    aln_name=os.path.basename(args.aln)
     n_iter=1
     tree_names=['A', 'B']
     PartitionedTrees=OrderedDict()
@@ -151,22 +138,8 @@ if __name__ == '__main__':
         num_threads:    {args.num_threads}\n\
         nf_executor:    {args.executor}\n"
         )
-   
-    run_name=f"{n_iter}_split_{'_'.join(tree_names)}"
-    temp_out=f"{args.output_dir}/{run_name}"
-   
-    """split_aln"""
-    print(f"Assigning sites in {aln_name} to +R2 rate categories and making trees for each partition.\n")
-    print(f"Trees: {tree_names}\n")
 
-    #run_nf(args.aln, run_name, "split_aln", "null", "null") 
-    print(f"Done! Files output to {temp_out}\n")
-
-    '''Save trees'''
-    trees=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
-    for key, val in zip(tree_names, trees):
-        PartitionedTrees[key] = val
-
+    split_aln(args.aln, n_iter, tree_names, PartitionedTrees)
     '''mast time'''
     '''First, concatenate tree files'''
 
@@ -179,13 +152,53 @@ if __name__ == '__main__':
     with open(concat_tree, "w") as file:
         subprocess.run(["cat"] + list(PartitionedTrees.values()), stdout=file)
 
-    run_nf(args.aln, run_name, "mast", concat_tree, "GTR+FO+G,GTR+FO+G")
+    print(f"[{run_name}]\tRunning MAST with Trees: {tree_names} as input.")
+    #run_nf(args.aln, run_name, "mast", concat_tree, "GTR+FO+G,GTR+FO+G")
+    print(f"[{run_name}]\tDone! Files output to {temp_out}")
 
     """
+    Parse and save iteration outputs to the Results dict
+    """
+    
+    '''Record MAST BIC'''
+    iqtree_out_path=f"{temp_out}/t2_mast_tr.iqtree"
+    bic=get_bic(iqtree_out_path)
+    print(f"[{run_name}]\tBIC: {bic}")
+
+    '''Collect fastas post-HMM assignment'''
+    ## Get partitions
+    ## Get alignment files
+    alns=collect_alns(glob.glob(f"{temp_out}/*.fas"), tree_names)
+   
+    MastResults[run_name] = {
+        "bic": bic,
+        "input_trees": tree_names, 
+        "aln": alns
+        }
+    print(f"[{run_name}]\t{PartitionedTrees}")
+    print(f"[{run_name}]\t{MastResults}")
+    """
+    Run split_aln on one alignment
+    """
+
+    n_iter+=1
+    for t_old in tree_names: 
+        ''' Split each existing alignment and add key to existing dict'''
+        p=[f"{t_old}A", f"{t_old}B"]
+        run_name=f"{n_iter}_split_{'_'.join(p)}"
+        for t_new in p:
+            PartitionedTrees[t_new] = None
+        ''' Access alignment by matching key from previous MAST run '''
+        pattern = '_'.join(tree_names)
+        aln=[value['aln'][f"{t_old}′"] for key, value in MastResults.items() if key.endswith(pattern)][0]
+        print(aln[0])
+        split_aln(aln, n_iter, p, PartitionedTrees)
+    print(PartitionedTrees)
+    """
+    return(Results, run_name, n_iter, new_trees)
     Results, prev_runs, n_iter, tree_names = run_first_iter(aln, tree_names, n_iter, Results)
     print(Results)
     print(prev_runs)
-    
     '''Run split_aln on one output alignment'''
     print(list(Results[prev_runs]['aln'])[0])
 
