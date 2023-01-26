@@ -177,35 +177,30 @@ if __name__ == '__main__':
     """
     Always run second iteration (3 trees --> MAST)
     """
-    n_trees+=1
-    for t_old in tree_names: 
-        # TODO: Run in parallel
-        ''' Split each existing alignment and add key to existing dict'''
-        p=[f"{t_old}A", f"{t_old}B"]
-        for t_new in p:
-            PartitionedTrees[t_new] = None
-        ''' Access alignment by matching key from previous MAST run '''
-        pattern = '_'.join(tree_names)
-        aln=[value['aln'][f"{t_old}′"] for key, value in MastResults.items() if key.endswith(pattern)][0]
-
-        split_aln(aln, n_trees, p, PartitionedTrees) 
-    
-    '''Get list of tree combinations for next iteration'''
-    for i in range(0, len(tree_names)):
-        '''Name the run'''
-        tree_list=recurse_trees(tree_names, i)
-        run_name=f"{n_trees}_mast_{'_'.join(tree_list)}"
-        '''Add required input trees'''
-        MastResults[run_name] = {"input_trees": tree_list}
-        mast(n_trees, tree_list, PartitionedTrees)
-        bic_improving = compare_bic(MastResults)
-   
-    """
-    Compare BICs
-    """
     while bic_improving:
-        print("yay")
+        n_trees+=1
+        for t_old in tree_names: 
+            # TODO: Run in parallel
+            ''' Split each existing alignment and add key to existing dict'''
+            p=[f"{t_old}A", f"{t_old}B"]
+            for t_new in p:
+                PartitionedTrees[t_new] = None
+            ''' Access alignment by matching key from previous MAST run '''
+            pattern = '_'.join(tree_names)
+            aln=[value['aln'][f"{t_old}′"] for key, value in MastResults.items() if key.endswith(pattern)][0]
 
+            split_aln(aln, n_trees, p, PartitionedTrees) 
+        
+        '''Get list of tree combinations for next iteration'''
+        for i in range(0, len(tree_names)):
+            '''Name the run'''
+            tree_list=recurse_trees(tree_names, i)
+            run_name=f"{n_trees}_mast_{'_'.join(tree_list)}"
+            '''Add required input trees'''
+            MastResults[run_name] = {"input_trees": tree_list}
+            mast(n_trees, tree_list, PartitionedTrees)
+            bic_improving = compare_bic(MastResults)
+   
     """
     Exiting program
     """
@@ -221,7 +216,4 @@ if __name__ == '__main__':
         For example, For [A, BA, BB] --> MAST, Tree [A] and Alignment [A] already exists. 
         However, Alignment [A`] exists, but no tree is constructed from [A`].
     """
-    #TODO: Loop through n_trees automatically
-    #TODO: Compare BIC for stopping condition
-    #TODO: Clean nf output names
 
