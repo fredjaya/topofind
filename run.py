@@ -142,6 +142,12 @@ def mast(n_trees, tree_names, PartitionedTrees):
             }
         return
 
+def compare_bic(MastResults):
+    if int(min(MastResults.items())[0].split("_")[0]) < n_trees:
+        return(False)
+    else:
+        return(True)
+
 if __name__ == '__main__':
     """
     Initialise variables and Results dictionary
@@ -150,6 +156,7 @@ if __name__ == '__main__':
     repo_path=os.path.dirname(__file__)
     n_trees=2
     tree_names=['A', 'B']
+    bic_improving=True
     PartitionedTrees=OrderedDict()
     MastResults=OrderedDict()
     
@@ -161,13 +168,15 @@ if __name__ == '__main__':
         nf_executor:    {args.executor}\n"
         )
 
+    """
+    Always run first iteration (2 trees --> MAST)
+    """
     split_aln(args.aln, n_trees, tree_names, PartitionedTrees)
     mast(n_trees, tree_names, PartitionedTrees)
 
     """
-    Next iteration
+    Always run second iteration (3 trees --> MAST)
     """
-
     n_trees+=1
     for t_old in tree_names: 
         # TODO: Run in parallel
@@ -189,10 +198,22 @@ if __name__ == '__main__':
         '''Add required input trees'''
         MastResults[run_name] = {"input_trees": tree_list}
         mast(n_trees, tree_list, PartitionedTrees)
-    
+        bic_improving = compare_bic(MastResults)
+   
+    """
+    Compare BICs
+    """
+    while bic_improving:
+        print("yay")
+
+    """
+    Exiting program
+    """
+    print(f"\nNo improvement in BIC. Stopping program :)")
+    print(f"\nFinal Results:")
     print("\n", PartitionedTrees, "\n")
     print(MastResults)
-
+    
     """
     TODO:
         Do not run split_aln if already exists. 
