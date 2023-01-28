@@ -14,3 +14,8 @@
 [2_mast_A_B]    BIC: 81891.4428
 [3_mast_B_AA_AB]        No new splits, MAST not run. (All sites assigned to AA)
 [3_mast_A_BA_BB]        BIC: 81972.3383
+
+**test2**
+[2_split_A_B]   b'  ERROR: Only one state is observed in alignment\n'.
+
+

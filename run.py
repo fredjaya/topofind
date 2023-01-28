@@ -5,6 +5,7 @@ import re
 import glob
 import multiprocessing 
 from collections import OrderedDict
+import sys
 
 def set_args():
     parser = argparse.ArgumentParser()
@@ -20,7 +21,7 @@ def set_args():
 
 def run_nf(aln, run_name, mode, trees, submodel):
     if args.run_nf:
-        subprocess.run(["nextflow", "run", f"{repo_path}/python.nf",
+        nf = subprocess.run(["nextflow", "run", f"{repo_path}/python.nf",
             "--aln", aln,
             "--aln_format", args.aln_format,
             "--run_name", run_name,
@@ -31,6 +32,12 @@ def run_nf(aln, run_name, mode, trees, submodel):
             "--submodel", submodel, 
             "-profile", args.executor],
             capture_output=args.verbose)
+        
+        if nf.returncode != 1:
+            print("Error in nextflow process")
+        else:
+            return
+
     else:
         return
 
@@ -86,13 +93,17 @@ def split_aln(aln, n_trees, tree_names, PartitionedTrees):
     print(f"[{run_name}]\tOutput trees: {tree_names}")
 
     run_nf(aln, run_name, "split_aln", "null", "null") 
-    print(f"[{run_name}]\tDone! Files output to {temp_out}")
 
     '''Save trees to dict'''
     trees=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
+    if not trees:
+        error=subprocess.check_output(["grep", "ERROR:", f"{args.output_dir}/.nextflow.log"])
+        sys.exit(f"[{run_name}]\t{error}.")
     for key, val in zip(tree_names, trees):
         PartitionedTrees[key] = val
     return
+
+    print(f"[{run_name}]\tDone! Files output to {temp_out}")
 
 def n_models(n_trees):
     return(",".join(["GTR+FO+G"]*n_trees))
@@ -113,7 +124,10 @@ def mast(n_trees, tree_names, PartitionedTrees):
     if None in to_concat:
         print(f"\033[1m[{run_name}]\tNo new splits, MAST not run.\033[0m")
         MastResults[run_name] = None
-        return
+
+    elif to_concat == []:
+        print(f"\033[1mLe caught\033[0m")
+        MastResults[run_name] = None
 
     else:
         with open(concat_tree, "w") as file:
