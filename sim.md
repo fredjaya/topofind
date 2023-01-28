@@ -10,7 +10,7 @@
 | test7 | F81+F+R3   | 68415.617     | **67845.8588**  | 2     | 1-3995; 3995-5000 | 10 taxa, GTR+I+R12, 4000 tree1, 1000 tree2 | **Off by 5 bases!**   |
 | test8 | JC+R2      | 75814.794     | **70325.4333**  | 2     | 1-2500; 2501-5000 | 10 taxa, JC, 2500 tree1, 2500 tree2        | PERFECT               |
 
-**test1**
+**test1**  
 [2_mast_A_B]    BIC: 81891.4428
 [3_mast_B_AA_AB]        No new splits, MAST not run. (All sites assigned to AA)
 [3_mast_A_BA_BB]        BIC: 81972.3383
@@ -31,7 +31,10 @@ OrderedDict([
 	('3_mast_A_BA_BB', {'bic': 81972.3383, 'input_trees': ['A', 'BA', 'BB'], 'aln': {'A′': '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/3_mast_A_BA_BB/test1_class_1-out.fas', 'BA′': '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/3_mast_A_BA_BB/test1_class_2-out.fas', 'BB′': '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/3_mast_A_BA_BB/test1_class_3-out.fas'}})])
 ```  
 
-**test2**
-[2_split_A_B]   b'  ERROR: Only one state is observed in alignment\n'.
+**test2**  
+Only one state is observed in alignment  
+[2_mast_A_B]    No new partitions, MAST not run.  
 
-
+**test3**  
+All sites assigned to the one tree.   
+[2_mast_A_B]    No new partitions, MAST not run.  

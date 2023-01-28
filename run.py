@@ -31,8 +31,7 @@ def run_nf(aln, run_name, mode, trees, submodel):
             "--trees", trees, 
             "--submodel", submodel, 
             "-profile", args.executor],
-            capture_output=args.verbose,
-            check=True)
+            capture_output=args.verbose)
     else:
         return
 
@@ -113,6 +112,7 @@ def mast(n_trees, tree_names, PartitionedTrees):
         if key in tree_names:
            to_concat.append(value)
 
+    ''' Check that there is a new tree for MAST, else don't run. Can refactor '''
     if None in to_concat:
         print(f"\033[1m[{run_name}]\tNo new partitions, MAST not run.\033[0m")
         MastResults[run_name] = None
@@ -121,6 +121,13 @@ def mast(n_trees, tree_names, PartitionedTrees):
         """ 
         test2.fa: ERROR: Only one state is observed in alignment
         Error handled by check_valid_runs()
+        """
+        print(f"\033[1m[{run_name}]\tNo new partitions, MAST not run.\033[0m")
+        MastResults[run_name] = None
+
+    elif len(to_concat) == 1:
+        """
+        test3.fa: ERROR: All sites assigned to a single tree
         """
         print(f"\033[1m[{run_name}]\tNo new partitions, MAST not run.\033[0m")
         MastResults[run_name] = None
