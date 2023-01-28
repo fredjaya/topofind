@@ -35,6 +35,41 @@ python3 run.py -h
 ```
 
 ## Workflow  
+```mermaid
+flowchart TD
+	INPUT ==> split_aln
+	split_aln ==> |Update| PartitionedTrees
+	PartitionedTrees ==> mast
+	mast ==> |Update| MastResults
+	MastResults ==> bic_improving
+	bic_improving ==> |Y| get_new_trees
+	bic_improving --> |N| Stop
+	PartitionedTrees -.-> get_new_trees
+	get_new_trees --> |Update| PartitionedTrees
+	get_new_trees --> split_aln
+
+	%% Subgraphs
+	subgraph split_aln
+	t1_iqtree_per_split --> |test2| 2a[Error: Only one state is observed in alignment]
+	2a --> 2b["Outcome: tree_files = []"]
+	end
+	
+	subgraph PartitionedTrees
+	tree_names
+	tree_files
+	end
+	
+	subgraph mast
+	concat_trees --> run_nf
+	end
+	
+	subgraph MastResults
+	run_name
+	bic
+	input_trees
+	aln
+	end
+```
 
 ## Outputs  
 

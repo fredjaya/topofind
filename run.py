@@ -31,13 +31,8 @@ def run_nf(aln, run_name, mode, trees, submodel):
             "--trees", trees, 
             "--submodel", submodel, 
             "-profile", args.executor],
-            capture_output=args.verbose)
-        
-        if nf.returncode != 1:
-            print("Error in nextflow process")
-        else:
-            return
-
+            capture_output=args.verbose,
+            check=True)
     else:
         return
 
@@ -96,9 +91,6 @@ def split_aln(aln, n_trees, tree_names, PartitionedTrees):
 
     '''Save trees to dict'''
     trees=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
-    if not trees:
-        error=subprocess.check_output(["grep", "ERROR:", f"{args.output_dir}/.nextflow.log"])
-        sys.exit(f"[{run_name}]\t{error}.")
     for key, val in zip(tree_names, trees):
         PartitionedTrees[key] = val
     return
@@ -122,11 +114,15 @@ def mast(n_trees, tree_names, PartitionedTrees):
            to_concat.append(value)
 
     if None in to_concat:
-        print(f"\033[1m[{run_name}]\tNo new splits, MAST not run.\033[0m")
+        print(f"\033[1m[{run_name}]\tNo new partitions, MAST not run.\033[0m")
         MastResults[run_name] = None
 
     elif to_concat == []:
-        print(f"\033[1mLe caught\033[0m")
+        """ 
+        test2.fa: ERROR: Only one state is observed in alignment
+        Error handled by check_valid_runs()
+        """
+        print(f"\033[1m[{run_name}]\tNo new partitions, MAST not run.\033[0m")
         MastResults[run_name] = None
 
     else:
@@ -162,6 +158,17 @@ def compare_bic(MastResults):
     else:
         return(True)
 
+def check_valid_runs(MastResults):
+    ''' If there are no new partitions, stop program '''
+    none_counter=False
+    for key, value in MastResults.items():
+        if key.startswith(str(n_trees)):
+            if value is not None:
+               none_counter=True
+
+    if not none_counter:
+        sys.exit("\nStopping program :)\n")
+
 if __name__ == '__main__':
     """
     Initialise variables and Results dictionary
@@ -192,6 +199,7 @@ if __name__ == '__main__':
     Always run second iteration (3 trees --> MAST)
     """
     while bic_improving:
+        check_valid_runs(MastResults)
         n_trees+=1
         for t_old in tree_names: 
             # TODO: Run in parallel
@@ -218,7 +226,9 @@ if __name__ == '__main__':
     """
     Exiting program
     """
-    print(f"\nNo improvement in BIC. Stopping program :)")
+    if not bic_improving:
+        print(f"\nNo improvement in BIC. Stopping program :)")
+        
     print(f"\nFinal Results:")
     print("\n", PartitionedTrees, "\n")
     print(MastResults)

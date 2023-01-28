@@ -15,6 +15,22 @@
 [3_mast_B_AA_AB]        No new splits, MAST not run. (All sites assigned to AA)
 [3_mast_A_BA_BB]        BIC: 81972.3383
 
+```  
+OrderedDict([
+	('A', '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/2_split_A_B/test1_class_1-out.treefile'), 
+	('B', '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/2_split_A_B/test1_class_2-out.treefile'), 
+	('AA', '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/3_split_AA_AB/test1_class_1-out_class_1-out.treefile'), 
+	('AB', None), 
+	('BA', '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/3_split_BA_BB/test1_class_2-out_class_1-out.treefile'),
+	('BB', '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/3_split_BA_BB/test1_class_2-out_class_2-out.treefile')
+])
+
+OrderedDict([
+	('2_mast_A_B', {'bic': 81891.4428, 'input_trees': ['A', 'B'], 'aln': {'A′': '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/2_mast_A_B/test1_class_1-out.fas', 'B′': '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/2_mast_A_B/test1_class_2-out.fas'}}),
+	('3_mast_B_AA_AB', None),
+	('3_mast_A_BA_BB', {'bic': 81972.3383, 'input_trees': ['A', 'BA', 'BB'], 'aln': {'A′': '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/3_mast_A_BA_BB/test1_class_1-out.fas', 'BA′': '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/3_mast_A_BA_BB/test1_class_2-out.fas', 'BB′': '/home/frederickjaya/Dropbox/treemix_rc/04_testing/python/test1/3_mast_A_BA_BB/test1_class_3-out.fas'}})])
+```  
+
 **test2**
 [2_split_A_B]   b'  ERROR: Only one state is observed in alignment\n'.
 
