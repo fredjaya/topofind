@@ -24,5 +24,13 @@ class testCompareBIC(unittest.TestCase):
         n_trees=3
         self.assertFalse(compare_bic(no_runs, n_trees))
 
+    def test_improvement(self):
+        imp=OrderedDict()
+        imp['2_mast_A_B'] = {'bic': 81891.4428}
+        imp['3_mast_B_AA_AB'] = {'bic': 80000}
+        imp['3_mast_A_BA_BB'] = {'bic': None}
+        imp['3_mast_A_BA_BB'] = {'bic': 75000}
+        n_trees=3
+        self.assertTrue(compare_bic(imp, n_trees))
 if __name__ == '__main__':
     unittest.main()

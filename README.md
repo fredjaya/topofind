@@ -34,6 +34,11 @@ python3 run.py -a data/test1.fa -f fasta
 python3 run.py -h  
 ```
 
+- Run unit tests (for my own reference):  
+```
+python3 -m run.py -h  
+```
+
 ## Workflow  
 ```mermaid
 flowchart TD

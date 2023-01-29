@@ -3,3 +3,4 @@
 figs/
 *.swp
 *.Rhistory
+__pycache__

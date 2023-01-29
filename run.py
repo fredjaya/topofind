@@ -14,8 +14,9 @@ def set_args():
     parser.add_argument('-d', '--output_dir', type=str, help='Path to output directory', default=os.getcwd())
     parser.add_argument('-T', '--num_threads', type=int, help='[IQ-TREE2] No. cores/threads or AUTO-detect (default: 1)', default=1)
     parser.add_argument('-e', '--executor', choices=['local', 'slurm'], help='[NEXTFLOW] Where to run nextflow processes (default: local)', default='local')
-    parser.add_argument('-r', '--run_nf', action='store_false', help='[DEBUG] Run nextflow processes?')
     parser.add_argument('-v', '--verbose', action='store_false', help='Print detailed output')
+    parser.add_argument('-r', '--run_nf', action='store_false', help='[DEBUG] Run nextflow processes?')
+    parser.add_argument('-s', '--skip_iter', type=int, help='[DEBUG] Only run nextflow processes from n_trees', default=0)
     args = parser.parse_args()
     return(args)
 
@@ -25,17 +26,21 @@ def run_nf(aln, run_name, mode, trees, submodel, n_trees):
             aln_format=args.aln_format
         else:
             aln_format="fasta"
-        nf = subprocess.run(["nextflow", "run", f"{repo_path}/python.nf",
-            "--aln", aln,
-            "--aln_format", aln_format,
-            "--run_name", run_name,
-            "--out", args.output_dir,
-            "--nthreads", str(args.num_threads),
-            "--mode", mode, 
-            "--trees", trees, 
-            "--submodel", submodel, 
-            "-profile", args.executor],
-            capture_output=args.verbose)
+
+        if args.skip_iter < n_trees:
+            nf = subprocess.run(["nextflow", "run", f"{repo_path}/python.nf",
+                "--aln", aln,
+                "--aln_format", aln_format,
+                "--run_name", run_name,
+                "--out", args.output_dir,
+                "--nthreads", str(args.num_threads),
+                "--mode", mode, 
+                "--trees", trees, 
+                "--submodel", submodel, 
+                "-profile", args.executor],
+                capture_output=args.verbose)
+        else:
+            return
     else:
         return
 
@@ -164,20 +169,23 @@ def mast(n_trees, tree_names, PartitionedTrees):
         return
 
 def compare_bic(MastResults, n_trees):
-    temp_dict={}
+    temp=[]
     for key, value in MastResults.items():
         try:
-            temp_dict[key.split('_')[0]] = value["bic"]
+            temp.append((key, value["bic"]))
         except TypeError:
             """ When mast isn't run, value["bic"] == None """
             pass
+
     print("\nHas the BIC improved with more trees?")
-    best_n=min(temp_dict, key=temp_dict.get)
-    if int(best_n) < n_trees:
-        print(f"\nNo improvement in BIC. Stopping program :)")
+    print(temp)
+    best_model=min(temp, key = lambda x: x[1])
+    print(best_model)
+    if int(best_model[0].split("_")[0]) < n_trees:
+        print(f"No improvement in BIC. Stopping program :)\n")
         return False
     else:
-        print(f"\nYes! Proceed with more trees.")
+        print(f"Yes! Proceed with more trees.\n")
         return True
 
 def check_valid_runs(MastResults):
@@ -242,7 +250,7 @@ if __name__ == '__main__':
             '''Add required input trees'''
             MastResults[run_name] = {"input_trees": tree_list}
             mast(n_trees, tree_list, PartitionedTrees)
-            bic_improving = compare_bic(MastResults, n_trees)
+        bic_improving = compare_bic(MastResults, n_trees)
 
     """
     Exiting program
