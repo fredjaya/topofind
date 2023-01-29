@@ -19,11 +19,15 @@ def set_args():
     args = parser.parse_args()
     return(args)
 
-def run_nf(aln, run_name, mode, trees, submodel):
+def run_nf(aln, run_name, mode, trees, submodel, n_trees):
     if args.run_nf:
+        if n_trees == 2:
+            aln_format=args.aln_format
+        else:
+            aln_format="fasta"
         nf = subprocess.run(["nextflow", "run", f"{repo_path}/python.nf",
             "--aln", aln,
-            "--aln_format", args.aln_format,
+            "--aln_format", aln_format,
             "--run_name", run_name,
             "--out", args.output_dir,
             "--nthreads", str(args.num_threads),
@@ -86,7 +90,7 @@ def split_aln(aln, n_trees, tree_names, PartitionedTrees):
     print(f"[{run_name}]\tAssigning sites in {aln_name} to +R2 rate categories and making trees for each partition.")
     print(f"[{run_name}]\tOutput trees: {tree_names}")
 
-    run_nf(aln, run_name, "split_aln", "null", "null") 
+    run_nf(aln, run_name, "split_aln", "null", "null", n_trees) 
 
     '''Save trees to dict'''
     trees=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
@@ -137,7 +141,7 @@ def mast(n_trees, tree_names, PartitionedTrees):
             subprocess.run(["cat"] + to_concat, stdout=file)
 
         print(f"[{run_name}]\tRunning MAST with Trees: {tree_names} as input.")
-        run_nf(args.aln, run_name, "mast", concat_tree, n_models(n_trees))
+        run_nf(args.aln, run_name, "mast", concat_tree, n_models(n_trees), n_trees)
         print(f"[{run_name}]\tDone! Files output to {temp_out}")
 
         """
@@ -159,11 +163,22 @@ def mast(n_trees, tree_names, PartitionedTrees):
             }
         return
 
-def compare_bic(MastResults):
-    if int(min(MastResults.items())[0].split("_")[0]) < n_trees:
-        return(False)
+def compare_bic(MastResults, n_trees):
+    temp_dict={}
+    for key, value in MastResults.items():
+        try:
+            temp_dict[key.split('_')[0]] = value["bic"]
+        except TypeError:
+            """ When mast isn't run, value["bic"] == None """
+            pass
+    print("\nHas the BIC improved with more trees?")
+    best_n=min(temp_dict, key=temp_dict.get)
+    if int(best_n) < n_trees:
+        print(f"\nNo improvement in BIC. Stopping program :)")
+        return False
     else:
-        return(True)
+        print(f"\nYes! Proceed with more trees.")
+        return True
 
 def check_valid_runs(MastResults):
     ''' If there are no new partitions, stop program '''
@@ -172,7 +187,6 @@ def check_valid_runs(MastResults):
         if key.startswith(str(n_trees)):
             if value is not None:
                none_counter=True
-
     if not none_counter:
         sys.exit("\nStopping program :)\n")
 
@@ -228,14 +242,11 @@ if __name__ == '__main__':
             '''Add required input trees'''
             MastResults[run_name] = {"input_trees": tree_list}
             mast(n_trees, tree_list, PartitionedTrees)
-            bic_improving = compare_bic(MastResults)
-   
+            bic_improving = compare_bic(MastResults, n_trees)
+
     """
     Exiting program
     """
-    if not bic_improving:
-        print(f"\nNo improvement in BIC. Stopping program :)")
-        
     print(f"\nFinal Results:")
     print("\n", PartitionedTrees, "\n")
     print(MastResults)
