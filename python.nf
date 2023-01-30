@@ -35,11 +35,6 @@ workflow {
     submodel    = ${params.submodel}
     """
 
-    if( params.mode == "first_iter" ) {
-        split_aln(params.aln_name, params.run_name, params.aln_ch, params.aln_format, params.nthreads)
-        mast(params.aln_name, params.run_name, params.aln_ch, params.aln_format, split_aln.out.t2, params.submodel, params.nthreads)
-    }
-
     if( params.mode == "split_aln" ) {        
         params.trees_ch = Channel
             .fromPath(params.trees)

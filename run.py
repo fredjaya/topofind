@@ -10,7 +10,6 @@ import sys
 def set_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', '--aln', type=str, help='Input sequence alignment', required=True)
-    parser.add_argument('-f', '--aln_format', choices=['fasta', 'phylip'], help='Alignment format', required=True)
     parser.add_argument('-d', '--output_dir', type=str, help='Path to output directory', default=os.getcwd())
     parser.add_argument('-T', '--num_threads', type=int, help='[IQ-TREE2] No. cores/threads or AUTO-detect (default: 1)', default=1)
     parser.add_argument('-e', '--executor', choices=['local', 'slurm'], help='[NEXTFLOW] Where to run nextflow processes (default: local)', default='local')
@@ -22,15 +21,9 @@ def set_args():
 
 def run_nf(aln, run_name, mode, trees, submodel, n_trees):
     if args.run_nf:
-        if n_trees == 2:
-            aln_format=args.aln_format
-        else:
-            aln_format="fasta"
-
         if args.skip_iter < n_trees:
             nf = subprocess.run(["nextflow", "run", f"{repo_path}/python.nf",
                 "--aln", aln,
-                "--aln_format", aln_format,
                 "--run_name", run_name,
                 "--out", args.output_dir,
                 "--nthreads", str(args.num_threads),
@@ -223,7 +216,6 @@ if __name__ == '__main__':
     
     print(f"\n\
         aln:            {args.aln}\n\
-        aln_format:     {args.aln_format}\n\
         output_dir:     {args.output_dir}\n\
         num_threads:    {args.num_threads}\n\
         nf_executor:    {args.executor}\n"
