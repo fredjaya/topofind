@@ -191,9 +191,7 @@ def compare_bic(MastResults, n_trees):
             """ When mast isn't run, value["bic"] == None """
             pass
     print("\nHas the BIC improved with more trees?")
-    print(temp)
     best_model=min(temp, key = lambda x: x[1])
-    print(best_model)
     if int(best_model[0].split("_")[0]) < n_trees:
         print(f"No improvement in BIC. Stopping program :)\n")
         return False
@@ -244,26 +242,25 @@ if __name__ == '__main__':
     while bic_improving:
         # TODO: Run in parallel
         check_valid_runs(MastResults)
-        n_trees+=1
         for t_old in tree_names: 
-            ''' Split each existing alignment and add key to existing dict'''
+            ''' Further partition each existing alignment and add key to existing dict'''
             p=[f"{t_old}A", f"{t_old}B"]
             for t_new in p:
-                PartitionedTrees[t_new] = None
-            ''' Access alignment by matching key from previous MAST run '''
-            pattern = '_'.join(tree_names)
-            aln=[value['aln'][f"{t_old}′"] for key, value in MastResults.items() if key.endswith(pattern)][0]
-
-            split_aln(aln, n_trees, p, PartitionedTrees) 
+                if t_new not in PartitionedTrees.keys():
+                    PartitionedTrees[t_new] = None
+                    ''' Access alignment by matching key from previous MAST run '''
+                    pattern = '_'.join(tree_names)
+                    aln=[value['aln'][f"{t_old}′"] for key, value in MastResults.items() if key.endswith(pattern)][0]
+                    split_aln(aln, n_trees, p, PartitionedTrees) 
         
         '''Get list of tree combinations for next iteration'''
-        for i in range(0, len(tree_names)):
-            '''Name the run'''
-            tree_list=recurse_trees(tree_names, i)
-            run_name=f"{n_trees}_mast_{'_'.join(tree_list)}"
-            '''Add required input trees'''
-            MastResults[run_name] = {"input_trees": tree_list}
-            mast(n_trees, tree_list, PartitionedTrees)
+        tree_names = get_new_trees(MastResults, n_trees)
+        n_trees+=1
+        for l in tree_names:
+            ''' Run MAST on each combination of trees '''
+            run_name=f"{n_trees}_mast_{'_'.join(l)}"
+            MastResults[run_name] = {"input_trees": l}
+            mast(n_trees, l, PartitionedTrees)
         bic_improving = compare_bic(MastResults, n_trees)
 
     """
