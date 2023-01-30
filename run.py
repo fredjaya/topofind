@@ -168,6 +168,20 @@ def mast(n_trees, tree_names, PartitionedTrees):
             }
         return
 
+def get_new_trees(MastResults, n_trees):
+    ''' Get previous input trees from last mast iterations '''
+    tree_names = []
+    for key, value in MastResults.items():
+        if key.startswith(str(n_trees)):
+            if value is not None:
+                tree_names.append(value['input_trees'])
+    ''' For each combination of input trees, make new ones by splitting one tree '''
+    new_trees = []
+    for l in tree_names:
+        for i in range(0, len(l)):
+            new_trees.append(recurse_trees(l, i))
+    return(new_trees)
+    
 def compare_bic(MastResults, n_trees):
     temp=[]
     for key, value in MastResults.items():
@@ -176,7 +190,6 @@ def compare_bic(MastResults, n_trees):
         except TypeError:
             """ When mast isn't run, value["bic"] == None """
             pass
-
     print("\nHas the BIC improved with more trees?")
     print(temp)
     best_model=min(temp, key = lambda x: x[1])
@@ -227,11 +240,12 @@ if __name__ == '__main__':
     """
     Always run second iteration (3 trees --> MAST)
     """
+    ''' Get new tree names'''
     while bic_improving:
+        # TODO: Run in parallel
         check_valid_runs(MastResults)
         n_trees+=1
         for t_old in tree_names: 
-            # TODO: Run in parallel
             ''' Split each existing alignment and add key to existing dict'''
             p=[f"{t_old}A", f"{t_old}B"]
             for t_new in p:
