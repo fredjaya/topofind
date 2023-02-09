@@ -1,6 +1,6 @@
 import unittest
 from collections import OrderedDict
-from run import compare_bic, get_new_trees
+from run import compare_bic
 from run import get_new_trees
 from run import new_partitions_per_tree
 from run import get_previous_run

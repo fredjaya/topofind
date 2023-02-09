@@ -32,7 +32,7 @@ process t1_modelfinder_across_rhas_categories {
     iqtree2 -s ${aln} \
         -pre t1_rk_mf \
         -mrate E,I,R,I+R -m MF\
-        -T ${nthreads}
+        -nt ${nthreads}
     """
 
 }
@@ -115,7 +115,7 @@ process t1_iqtree_with_best_r2 {
         -pre t1_r2 \
         -m ${model} \
         -wslr -wspr -alninfo \
-        -T ${nthreads}
+        -nt ${nthreads}
     """
 
 }
@@ -209,7 +209,7 @@ process t1_iqtree_per_split {
 
     script:
     """
-    iqtree2 -s ${splitted_aln} -pre ${splitted_aln.simpleName} -T ${nthreads}
+    iqtree2 -s ${splitted_aln} -pre ${splitted_aln.simpleName} -nt ${nthreads}
     """
     
 }
@@ -271,7 +271,7 @@ process t2_iqtree_mast {
     script:
     """
     iqtree2 -s ${aln} -pre t2_mast_tr -te ${trees} \
-        -m "TMIX{"${mast_submodel}"}+TR" -T ${nthreads} -wslr -wspr -alninfo
+        -m "TMIX{"${mast_submodel}"}+TR" -nt ${nthreads} -wslr -wspr -alninfo
     """
     
 }
@@ -311,7 +311,7 @@ process mast_hmm {
 
     script:
     """
-    iqtree2 -s ${aln} -pre mast_hmm -te ${trees} -m "TMIX{"${mast_submodel}"}+TR" -T ${nthreads} -wslr -wspr -alninfo -hmm
+    iqtree2 -s ${aln} -pre mast_hmm -te ${trees} -m "TMIX{"${mast_submodel}"}+TR" -nt ${nthreads} -wslr -wspr -alninfo -hmm
     """
     
 }

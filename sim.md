@@ -38,3 +38,43 @@ Only one state is observed in alignment
 **test3**  
 All sites assigned to the one tree.   
 [2_mast_A_B]    No new partitions, MAST not run.  
+
+
+**concat**  
+
+
+**orchid set2**  
+|                           |              | ID     | Parent |
+| ------------------------- | ------------ | ------ | ------ |
+| 2_mast_A_B                | 2004337.8210 | T2     |        |
+| 3_mast_A_BA_BB            | 2002991.7827 | T3Best |        |
+| 3_mast_B_AA_AB            | 2003296.2824 |        |        |
+| 4_mast_AA_AB_BA_BB        | 2002380.9617 |        |        |
+| 4_mast_A_BA_BBA_BBB       | 2002293.2420 | T4Best | T3Best |
+| 4_mast_A_BB_BAA_BAB       | 2002660.2608 |        |        |
+| 4_mast_B_AA_ABA_ABB       | 2002606.5423 |        |        |
+| 4_mast_B_AB_AAA_AAB       | 2002797.4753 |        |        |
+| 4_mast_BA_BB_AA_AB        | 2002384.0475 |        |        |
+| 5_mast_AA_ABA_ABB_BA_BB   | 2001934.3887 |        |        |
+| 5_mast_AA_AB_BA_BBA_BBB   | 2002223.2472 |        |        |
+| 5_mast_AA_AB_BB_BAA_BAB   | 2001855.2690 |        |        |
+| 5_mast_AA_BA_BB_ABA_ABB   | 2001936.8025 |        |        |
+| 5_mast_AB_AAA_AAB_BA_BB   | 2002019.3600 |        |        |
+| 5_mast_A_BAA_BAB_BBA_BBB  | 2002045.6453 |        |        |
+| 5_mast_AB_BA_BB_AAA_AAB   | 2002023.5144 |        |        |
+| 5_mast_A_BB_BAA_BABA_BABB | 2001865.4787 |        |        |
+| 5_mast_A_BB_BAB_BAAA_BAAB | 2001579.0009 |        |        |
+| 5_mast_B_AAA_AAB_ABA_ABB  | 2001989.9314 |        |        |
+| 5_mast_BA_AA_AB_BBA_BBB   | 2001938.0071 |        |        |
+| 5_mast_B_AA_ABA_ABBA_ABBB | 2001954.9565 |        |        |
+| 5_mast_B_AA_ABB_ABAA_ABAB | 2001807.2188 |        |        |
+| 5_mast_B_AB_AAA_AABA_AABB | 2001949.4601 |        |        |
+| 5_mast_B_AB_AAB_AAAA_AAAB | 2001728.9198 |        |        |
+| 5_mast_B_ABA_ABB_AAA_AAB  | 2002304.2706 |        |        |
+| 5_mast_BA_BB_AA_ABA_ABB   | 2001937.7858 |        |        |
+| 5_mast_BA_BB_AB_AAA_AAB   | 2001779.0554 |        |        |
+| 5_mast_BA_BBA_BBB_AA_AB   | 2001984.5023 |        |        |
+| 5_mast_BB_AA_AB_BAA_BAB   | 2001867.1141 |        |        |
+| 5_mast_BB_BAA_BAB_AA_AB   | 2001837.2068 |        |        |
+
+
