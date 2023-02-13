@@ -3,7 +3,7 @@ import os
 import subprocess
 import re
 import glob
-import multiprocessing 
+import multiprocessing as mp
 from collections import OrderedDict
 import sys
 
@@ -85,6 +85,7 @@ def n_models(n_trees):
 
 def mast(n_trees, run_name, tree_names, PartitionedTrees):
     temp_out=f"{args.output_dir}/{run_name}"
+    temp_dict = {}
     concat_tree=f"{temp_out}/concat.treefile"
     if not os.path.exists(temp_out):
         os.mkdir(temp_out)
@@ -98,7 +99,7 @@ def mast(n_trees, run_name, tree_names, PartitionedTrees):
     ''' Check that there is a new tree for MAST, else don't run. Can refactor '''
     if None in to_concat:
         print(f"\033[1m[{run_name}]\tNo new partitions, MAST not run.\033[0m")
-        MastResults[run_name] = None
+        temp_dict[run_name] = None
 
     elif to_concat == []:
         """ 
@@ -106,14 +107,14 @@ def mast(n_trees, run_name, tree_names, PartitionedTrees):
         Error handled by check_valid_runs()
         """
         print(f"\033[1m[{run_name}]\tNo new partitions, MAST not run.\033[0m")
-        MastResults[run_name] = None
+        temp_dict[run_name] = None
 
     elif len(to_concat) == 1:
         """
         test3.fa: ERROR: All sites assigned to a single tree
         """
         print(f"\033[1m[{run_name}]\tNo new partitions, MAST not run.\033[0m")
-        MastResults[run_name] = None
+        temp_dict[run_name] = None
 
     else:
         with open(concat_tree, "w") as file:
@@ -134,13 +135,13 @@ def mast(n_trees, run_name, tree_names, PartitionedTrees):
 
         '''Collect fastas post-HMM assignment'''
         alns=collect_alns(glob.glob(f"{temp_out}/*.fas"), tree_names)
-   
-        MastResults[run_name] = {
+        
+        temp_dict[run_name] = {
             "bic": bic,
             "input_trees": tree_names, 
             "aln": alns
             }
-        return
+    return(temp_dict)
 
 def get_new_trees(MastResults, n_trees):
     ''' Get previous input trees from last mast iterations '''
@@ -230,10 +231,6 @@ if __name__ == '__main__':
         nf_executor:    {args.executor}\n"
         )
 
-    if args.skip_iter >= 3:
-        #n_trees=args.skip_iter
-        print(f"\tn_trees:\t{n_trees}\n")
-    
     while bic_improving:
         if n_trees == 2:
             """ Always run first iteration """
@@ -256,11 +253,11 @@ if __name__ == '__main__':
 
             """ Run mast """
             run_name=f"{n_trees}_mast_{'_'.join(input_trees)}"
-            mast(n_trees, run_name, input_trees, PartitionedTrees)
+            temp_dict = mast(n_trees, run_name, input_trees, PartitionedTrees)
+            MastResults.update(temp_dict)
 
         check_valid_runs(MastResults)
         n_trees+=1
-        print("n_trees ", n_trees)
         print(f"\nRUNNING PROGRAM WITH {n_trees} TREES\n")
         
         for tree_list in all_tree_names:
@@ -306,11 +303,16 @@ if __name__ == '__main__':
         
         '''Get list of new possible tree combinations for MAST'''
         all_tree_names = get_new_trees(MastResults, n_trees)
+        cmds=[]
         for tree_list in all_tree_names:
             ''' Run MAST on each combination of trees '''
             run_name=f"{n_trees}_mast_{'_'.join(tree_list)}"
-            MastResults[run_name] = {"input_trees": tree_list}
-            mast(n_trees, run_name, tree_list, PartitionedTrees)
+            t = (n_trees, run_name, tree_list, PartitionedTrees)
+            cmds.append(t)
+        with mp.Pool() as pool:
+            temp_dicts = pool.starmap(mast, cmds)
+            for i in temp_dicts:
+                MastResults.update(i)
         bic_improving = compare_bic(MastResults, n_trees)
 
     """
@@ -327,4 +329,3 @@ if __name__ == '__main__':
         For example, For [A, BA, BB] --> MAST, Tree [A] and Alignment [A] already exists. 
         However, Alignment [A`] exists, but no tree is constructed from [A`].
     """
-
