@@ -26,7 +26,7 @@ Call python3 to ensure conda version is used.
 
 - Infer the (best number of) topologies from a sequence alignment (`test1.fa`):  
 ```
-python3 run.py -a data/test1.fa -f fasta
+python3 run.py -a data/test1.fa
 ```  
 
 - Show all available options:  
