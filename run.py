@@ -212,6 +212,41 @@ def get_previous_aln(prev_run, tree, MastResults):
         elif key in prev_run:
             return(value['aln'][f"{tree}′"])
 
+def split_aln(tree, prev_run, MastResults):
+    """ 
+    Further partition each existing alignment
+    new_trees = ['AA', 'AB'] 
+    new_tree  = 'AA'
+    """
+    d={}
+    new_trees=new_partitions_per_tree(tree)
+    run_name=f"{n_trees}_split_{'_'.join(new_trees)}"
+    temp_out=f"{args.output_dir}/{run_name}"
+    aln=get_previous_aln(prev_run, tree, MastResults)
+    
+    run_split = True
+    for new_tree in new_trees:
+        """ Run split_aln if it doesn't exist yet """
+        if new_tree in PartitionedTrees.keys():
+            run_split = False
+    
+    if run_split and aln is not None:
+        ''' Access previous alignment by matching key from previous MAST run '''
+        aln_name=os.path.basename(aln)
+        print(f"[{run_name}]\tAssigning sites in {aln_name} to +R2 rate categories and making trees for each partition.")
+        run_nf(aln, run_name, "split_aln", "null", "null", n_trees) 
+        print(f"[{run_name}]\tDone! Files output to {temp_out}")
+
+    '''Save trees to dict'''
+    tree_files=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
+    if len(tree_files) != 2:
+        for new_tree in new_trees:
+            d[new_tree]=None
+    else:
+        for key, val in zip(new_trees, tree_files):
+            d[key] = val
+    return(d)
+
 if __name__ == '__main__':
     """
     Initialise variables and Results dictionary
@@ -268,41 +303,16 @@ if __name__ == '__main__':
             tree = 'A'
             """
             prev_run = get_previous_run(n_trees, tree_list)
+            cmds=[]
             for tree in tree_list:
-                """ 
-                Further partition each existing alignment
-                new_trees = ['AA', 'AB'] 
-                new_tree  = 'AA'
-                """
-                new_trees=new_partitions_per_tree(tree)
-                run_name=f"{n_trees}_split_{'_'.join(new_trees)}"
-                temp_out=f"{args.output_dir}/{run_name}"
-                aln=get_previous_aln(prev_run, tree, MastResults)
-                
-                run_split = True
-                for new_tree in new_trees:
-                    """ Run split_aln if it doesn't exist yet """
-                    if new_tree in PartitionedTrees.keys():
-                        run_split = False
-                
-                if run_split and aln is not None:
-                    ''' Access previous alignment by matching key from previous MAST run '''
-                    aln_name=os.path.basename(aln)
-                    print(f"[{run_name}]\tAssigning sites in {aln_name} to +R2 rate categories and making trees for each partition.")
-                    print(f"[{run_name}]\tOutput trees: {new_trees}")
-                    run_nf(aln, run_name, "split_aln", "null", "null", n_trees) 
-                    print(f"[{run_name}]\tDone! Files output to {temp_out}")
-
-                '''Save trees to dict'''
-                tree_files=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
-                if len(tree_files) != 2:
-                    for new_tree in new_trees:
-                        PartitionedTrees[new_tree]=None
-                else:
-                    for key, val in zip(new_trees, tree_files):
-                        PartitionedTrees[key] = val
+                t = (tree, prev_run, MastResults)
+                cmds.append(t)
+            with mp.Pool() as pool:
+                temp_dicts = pool.starmap(split_aln, cmds)
+                print(temp_dicts)
+                for i in temp_dicts:
+                    PartitionedTrees.update(i)
        
-        print(PartitionedTrees)
         '''Get list of new possible tree combinations for MAST'''
         all_tree_names = get_new_trees(MastResults, n_trees)
         cmds=[]
