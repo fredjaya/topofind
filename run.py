@@ -237,14 +237,14 @@ def split_aln(tree, prev_run, MastResults):
         run_nf(aln, run_name, "split_aln", "null", "null", n_trees) 
         print(f"[{run_name}]\tDone! Files output to {temp_out}")
 
-    '''Save trees to dict'''
-    tree_files=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
-    if len(tree_files) != 2:
-        for new_tree in new_trees:
-            d[new_tree]=None
-    else:
-        for key, val in zip(new_trees, tree_files):
-            d[key] = val
+        '''Save trees to dict'''
+        tree_files=sorted(glob.glob(f"{temp_out}/*-out.treefile"))
+        if len(tree_files) != 2:
+            for new_tree in new_trees:
+                d[new_tree]=None
+        else:
+            for key, val in zip(new_trees, tree_files):
+                d[key] = val
     return(d)
 
 if __name__ == '__main__':
