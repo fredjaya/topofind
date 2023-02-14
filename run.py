@@ -309,7 +309,6 @@ if __name__ == '__main__':
                 cmds.append(t)
             with mp.Pool() as pool:
                 temp_dicts = pool.starmap(split_aln, cmds)
-                print(temp_dicts)
                 for i in temp_dicts:
                     PartitionedTrees.update(i)
        
