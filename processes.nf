@@ -1,17 +1,7 @@
 nextflow.enable.dsl = 2
 
-def store_models(x) {
-    // Store number of FreeRate categories, model, and BIC scores
-    x.tokenize(" ").collate(2)                                   
-}
+process iqtree_r2 {
 
-process t1_modelfinder_across_rhas_categories {
-    /*
-     * t1: single-tree
-     * rk: use modelfinder to calculate fit of substitution models and 
-     *     k FreeRate categories
-     */
-    
     publishDir "${params.out}/${run_name}", mode: "copy"
 
     input:
@@ -21,106 +11,25 @@ process t1_modelfinder_across_rhas_categories {
         val nthreads
 
     output:
+        path '*.alninfo', emit: alninfo
         path '*.model.gz'
-        path '*.treefile'
-        path '*.log'
+        path '*.mldist'
+        path '*.bionj'
+        path '*.sitelh', emit: sitelh
+        path '*.treefile', emit: tree
+        path '*.siteprob'
         path '*.iqtree'
         path '*.ckp.gz'
+        path '*.log'
 
     script:
     """
-    iqtree2 -s ${aln} \
-        -pre t1_rk_mf \
-        -mrate E,I,R,I+R -m MF\
-        -nt ${nthreads}
-    """
-
-}
-
-process keep_modelfinder_results {
-    // Keep only ModelFinder results from .log
-
-    publishDir "${params.out}/${run_name}", mode: "copy"
-
-    input:
-        val aln_name
-        val run_name
-        path log
-
-    output:
-        path models_only
-
-    shell:
-    '''
-    (sed -E '0,/^ModelFinder will test up to /d; /^Akaike Information Criterion:/,$d; /^WARNING: .+$/d' | tr -s ' ') < !{log} > models_only
-
-    '''
-
-}
-
-process best_model_per_rhas {
-    // Get overall best fitting model across all Rk
-    // Get best fitting model for each Rk
-
-    debug "true"
-
-    publishDir "${params.out}/${run_name}", mode: "copy"
-
-    input:
-        val aln_name
-        val run_name
-        path models_only
-
-    output:
-        path "models_summary.tsv"
-        path "modelfinder_parsed.tsv"
-        env MODELS
-
-    script:
-    """
-    compare_models.R ${models_only}
-    MODELS=`sed 1d models_summary.tsv`
-    cat models_summary.tsv
+    iqtree2 -s ${aln} -pre r2 -mrate E,R2,I+R2 -nt ${nthreads} \
+        -wslr -wspr -alninfo  
     """ 
 }
 
-process t1_iqtree_with_best_r2 {
-
-    /*
-     * t1: single-tree
-     * r2: k=2 rate categories
-     */
-
-    publishDir "${params.out}/${run_name}", mode: "copy"
-
-    input:
-        val aln_name
-        val run_name
-        path aln
-        val nthreads
-        val model
-
-    output:
-        path '*.treefile'
-        path '*.log'
-        path '*.iqtree'
-        path '*.ckp.gz'
-        path '*.alninfo'
-        path '*.sitelh'
-        path '*.siteprob'
-
-    script:
-    """
-    iqtree2 -s ${aln} \
-        -pre t1_r2 \
-        -m ${model} \
-        -wslr -wspr -alninfo \
-        -nt ${nthreads}
-    """
-
-}
-
-process hmm_assign_sites {
+process hmm_sites_to_ratecats {
     // Assign sites to FreeRate classes or tree mixtures with the HMM
 
     publishDir "${params.out}/${run_name}", mode: "copy"
@@ -133,7 +42,7 @@ process hmm_assign_sites {
 
     output:
         path "*_site_assignment.png"
-        path "*.partition"
+        path "*.partition", emit: partitions
 
     script:
     """
@@ -158,7 +67,7 @@ process evaluate_partitions {
         path partition
 
     output:
-        path "*.partition_amas", optional: true
+        path "*.partition_amas", optional: true, emit: amas_parts
 
     shell:
     '''
@@ -179,18 +88,17 @@ process amas_split {
         val run_name
         path aln
         path partition
-        val aln_format
 
     output:
         path "*.fas"
 
     script:
     """
-    AMAS.py split -l ${partition} -i ${aln} -f ${aln_format} -d dna
+    AMAS.py split -l ${partition} -i ${aln} -f fasta -d dna
     """
 }
 
-process t1_iqtree_per_split {
+process iqtree_mfp {
 
     //errorStrategy { task.exitStatus == 2 ? "ignore" : "terminate" }
     publishDir "${params.out}/${run_name}", mode: "copy"
@@ -203,7 +111,7 @@ process t1_iqtree_per_split {
 
     output:
         path '*.model.gz'
-        path '*.treefile'
+        path '*.treefile', emit: trees
         path '*.log'
         path '*.iqtree'
 

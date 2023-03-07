@@ -1,22 +1,13 @@
 nextflow.enable.dsl = 2
 
 include {                                          
-    t1_modelfinder_across_rhas_categories;         
-    keep_modelfinder_results;
-    best_model_per_rhas; 
-    store_models;
-    t1_iqtree_with_best_r2;                        
-    get_bic as get_bic_t1_r2;                      
-    hmm_assign_sites as hmm_assign_sites_t1_r2;    
-    evaluate_partitions;                           
-    amas_split;                                     
-    t1_iqtree_per_split;                           
-    get_bic as get_bic_t1_split;                   
-    concatenate_trees_for_mast;                    
-    t2_iqtree_mast;                                
-    get_bic as get_bic_t2_mast;                    
-    hmm_assign_sites as hmm_assign_sites_mast;     
+    iqtree_r2;
+    hmm_sites_to_ratecats;
+    evaluate_partitions;
+    amas_split;
+    iqtree_mfp;
 } from './processes.nf'                            
+
 
 workflow split_aln {
     
@@ -28,27 +19,18 @@ workflow split_aln {
         aln_name
         run_name
         aln_ch
-        aln_format
         nthreads
 
     main:
-        t1_modelfinder_across_rhas_categories(aln_name, run_name, aln_ch, nthreads)
-        keep_modelfinder_results(aln_name, run_name, t1_modelfinder_across_rhas_categories.out[2])
-        best_model_per_rhas(aln_name, run_name, keep_modelfinder_results.out)
-        best_model_per_rhas.out[2]
-            .map { models_out -> store_models(models_out) }
-            .set { models_list }
-        t1_iqtree_with_best_r2(aln_name, run_name, aln_ch, nthreads, models_list.map { x -> x[1][0] } )
-        get_bic_t1_r2(aln_name, run_name, t1_iqtree_with_best_r2.out[2])
-        hmm_assign_sites_t1_r2(aln_name, run_name, t1_iqtree_with_best_r2.out[5], t1_iqtree_with_best_r2.out[4])
-        evaluate_partitions(aln_name, run_name, hmm_assign_sites_t1_r2.out[1])
-        amas_split(aln_name, run_name, aln_ch, evaluate_partitions.out[0], aln_format)
-        t1_iqtree_per_split(aln_name, run_name, amas_split.out[0].flatten(), nthreads)
+        iqtree_r2(aln_name, run_name, aln_ch, nthreads)
+        hmm_sites_to_ratecats(aln_name, run_name, iqtree_r2.out.sitelh, iqtree_r2.out.alninfo)
+        evaluate_partitions(aln_name, run_name, hmm_sites_to_ratecats.out.partitions)
+        amas_split(aln_name, run_name, aln_ch, evaluate_partitions.out.amas_parts)
+        iqtree_mfp(aln_name, run_name, amas_split.out[0].flatten(), nthreads)
 
     emit:
-        t1 = t1_iqtree_with_best_r2.out[0]
-        t2 = t1_iqtree_per_split.out[1].collect()
-        bic = get_bic_t1_r2.out[0]
+        t1 = iqtree_r2.out.tree
+        t2 = iqtree_mfp.out.trees.collect()
 }
 
 workflow mast {
