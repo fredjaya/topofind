@@ -169,8 +169,8 @@ process iqtree_hmmster {
 
     output:
         path '*.treefile'
-        path '*.iqtree'
-        path '*.hmm'
+        path '*.iqtree', emit: iqtree
+        path '*.hmm', emit: hmm
         path '*.ckp.gz'
         path '*.log'
 
@@ -180,6 +180,24 @@ process iqtree_hmmster {
         -m "TMIX{"${mast_submodel}"}+T" -nt ${nthreads}
     """
     
+}
+
+process parse_hmmster_partitions {
+
+    publishDir "${params.out}/${run_name}", mode: "copy"
+
+    input:
+        val run_name
+        path hmm
+
+    output:
+        path 'hmmster.partitions_amas'
+
+    script:
+    """
+    hmmster_partitions.py ${hmm}
+    """
+
 }
 
 process get_bic {
