@@ -62,7 +62,6 @@ process evaluate_partitions {
     debug true
     
     input:
-        val aln_name
         val run_name
         path partition
 
@@ -74,7 +73,9 @@ process evaluate_partitions {
     if ((`cat !{partition} | wc -l` == 4)); then
         echo "\nWARNING: All sites in !{run_name} were assigned to a single class."
     fi
+    if [[ `grep "#nexus" !{partition}` == "#nexus" ]]; then
         sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
+    fi
     '''
 }
 
@@ -90,7 +91,7 @@ process amas_split {
         path partition
 
     output:
-        path "*.fas"
+        path "*.fas", emit: aln
 
     script:
     """
@@ -191,7 +192,7 @@ process parse_hmmster_partitions {
         path hmm
 
     output:
-        path 'hmmster.partitions_amas'
+        path 'hmmster.partitions_amas', emit: amas_parts
 
     script:
     """
