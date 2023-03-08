@@ -41,8 +41,8 @@ process hmm_sites_to_ratecats {
         path alninfo
 
     output:
-        path "*_site_assignment.png"
-        path "*.partition", emit: partitions
+        path "site_assignment.png"
+        path "r2.partition", emit: partitions
 
     script:
     """
@@ -122,7 +122,7 @@ process iqtree_mfp {
     
 }
 
-process concatenate_trees_for_mast {
+process concat_trees {
     // Combine trees from partitioned sites for MAST input
 
     debug true
@@ -136,7 +136,7 @@ process concatenate_trees_for_mast {
         path "*.treefile"
 
     output:
-        path "*.treefile", optional: true
+        path "concat.treefile", optional: true, emit: trees 
 
     shell:
     '''
@@ -146,7 +146,7 @@ process concatenate_trees_for_mast {
     '''
 }
 
-process t2_iqtree_mast {
+process iqtree_hmmster {
 
     publishDir "${params.out}/${run_name}", mode: "copy"
     errorStrategy { task.exitStatus == 2 ? 'ignore' : 'terminate' } 
@@ -169,61 +169,18 @@ process t2_iqtree_mast {
 
     output:
         path '*.treefile'
-        path '*.log'
         path '*.iqtree'
-        path '*.ckp.gz'
-        path '*.sitelh'
-        path '*.siteprob'
-        path '*.alninfo'
-
-    script:
-    """
-    iqtree2 -s ${aln} -pre t2_mast_tr -te ${trees} \
-        -m "TMIX{"${mast_submodel}"}+TR" -nt ${nthreads} -wslr -wspr -alninfo
-    """
-    
-}
-
-process mast_hmm {
-    // Use iqtree-2.2.0.8.mix.1.hmm with built-in hmm
-    // Replaces t2_iqtree_mast
-
-    publishDir "${params.out}/${run_name}", mode: "copy"
-    errorStrategy { task.exitStatus == 2 ? 'ignore' : 'terminate' } 
-    /*
-     * exitStatus == 2  
-     * ERROR: The number of submodels specified in the mixture does not match 
-     * with the tree number 
-     * 
-     * Due to concat trees having less trees with errorStrategy ignore 
-     *
-     */
-
-    input:
-        val aln_name
-        val run_name
-        path aln
-        path trees
-        val mast_submodel
-        val nthreads
-
-    output:
-        path '*.treefile'
-        path '*.log'
-        path '*.iqtree'
-        path '*.ckp.gz'
-        path '*.sitelh'
-        path '*.siteprob'
-        path '*.alninfo'
         path '*.hmm'
+        path '*.ckp.gz'
+        path '*.log'
 
     script:
     """
-    iqtree2 -s ${aln} -pre mast_hmm -te ${trees} -m "TMIX{"${mast_submodel}"}+TR" -nt ${nthreads} -wslr -wspr -alninfo -hmm
+    iqtree2 -s ${aln} -pre hmmster -te ${trees} -hmmster{gm} \
+        -m "TMIX{"${mast_submodel}"}+T" -nt ${nthreads}
     """
     
 }
-
 
 process get_bic {
     // From *.iqtree for single tree reconstruction and MAST
