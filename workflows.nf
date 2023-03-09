@@ -13,6 +13,8 @@ include {
     iqtree_hmmster;
     parse_hmmster_partitions
     get_bic;
+    store_partitioned_trees;
+
 } from './processes.nf'                            
 
 
@@ -34,10 +36,12 @@ workflow split_aln {
         evaluate_partitions_1(run_name, nexus_to_amas.out.amas_parts)
         amas_split_1(run_name, aln_ch, nexus_to_amas.out.amas_parts)
         iqtree_mfp(run_name, amas_split_1.out.aln.flatten(), nthreads)
+        store_partitioned_trees(run_name, iqtree_mfp.out.trees.collect())
 
     emit:
         t1 = iqtree_r2.out.tree
         t2 = iqtree_mfp.out.trees.collect()
+        //
 }
 
 workflow mast {
@@ -54,8 +58,7 @@ workflow mast {
         nthreads
 
     main:
-        concat_trees(run_name, aln_ch, trees)
-        iqtree_hmmster(run_name, aln_ch, concat_trees.out.trees, mast_submodel, nthreads)
+        iqtree_hmmster(run_name, aln_ch, trees, mast_submodel, nthreads)
         parse_hmmster_partitions(run_name, iqtree_hmmster.out.hmm)
         evaluate_partitions_2(run_name, parse_hmmster_partitions.out.amas_parts)
         amas_split_2(run_name, aln_ch, parse_hmmster_partitions.out.amas_parts)

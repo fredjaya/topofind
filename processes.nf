@@ -247,3 +247,19 @@ process compare_bic {
     '''
 
 }
+
+process store_partitioned_trees {
+
+    publishDir "${params.out}/${run_name}", mode: "copy"
+    debug "true"
+
+    input:
+        val run_name
+        path trees
+    
+    script:
+    """
+    store_splits.py ${run_name} ${trees}
+    """
+
+}
