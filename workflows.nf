@@ -3,6 +3,7 @@ nextflow.enable.dsl = 2
 include {                                          
     iqtree_r2;
     hmm_sites_to_ratecats;
+    nexus_to_amas;
     evaluate_partitions as evaluate_partitions_1;
     evaluate_partitions as evaluate_partitions_2;
     amas_split as amas_split_1;
@@ -22,17 +23,17 @@ workflow split_aln {
      */
 
     take:
-        aln_name
         run_name
         aln_ch
         nthreads
 
     main:
-        iqtree_r2(aln_name, run_name, aln_ch, nthreads)
-        hmm_sites_to_ratecats(aln_name, run_name, iqtree_r2.out.sitelh, iqtree_r2.out.alninfo)
-        evaluate_partitions_1(run_name, hmm_sites_to_ratecats.out.partitions)
-        amas_split_1(aln_name, run_name, aln_ch, evaluate_partitions_1.out.amas_parts)
-        iqtree_mfp(aln_name, run_name, amas_split_1.out.aln.flatten(), nthreads)
+        iqtree_r2(run_name, aln_ch, nthreads)
+        hmm_sites_to_ratecats(run_name, iqtree_r2.out.sitelh, iqtree_r2.out.alninfo)
+        nexus_to_amas(run_name, hmm_sites_to_ratecats.out.partitions)
+        evaluate_partitions_1(run_name, nexus_to_amas.out.amas_parts)
+        amas_split_1(run_name, aln_ch, nexus_to_amas.out.amas_parts)
+        iqtree_mfp(run_name, amas_split_1.out.aln.flatten(), nthreads)
 
     emit:
         t1 = iqtree_r2.out.tree
@@ -46,7 +47,6 @@ workflow mast {
      */
 
     take:
-        aln_name
         run_name
         aln_ch
         trees
@@ -54,11 +54,11 @@ workflow mast {
         nthreads
 
     main:
-        concat_trees(aln_name, run_name, aln_ch, trees)
-        iqtree_hmmster(aln_name, run_name, aln_ch, concat_trees.out.trees, mast_submodel, nthreads)
-        parse_hmmster_partitions(aln_name, iqtree_hmmster.out.hmm)
+        concat_trees(run_name, aln_ch, trees)
+        iqtree_hmmster(run_name, aln_ch, concat_trees.out.trees, mast_submodel, nthreads)
+        parse_hmmster_partitions(run_name, iqtree_hmmster.out.hmm)
         evaluate_partitions_2(run_name, parse_hmmster_partitions.out.amas_parts)
-        //amas_split_2(aln_name, run_name, aln_ch, evaluate_partitions.out[0], aln_format)
+        amas_split_2(run_name, aln_ch, parse_hmmster_partitions.out.amas_parts)
         //amas_split.out[0]
         //    .flatten()
         //    .branch {
@@ -80,6 +80,6 @@ workflow evaluate_run {
     take:    
 
     main:
-        get_bic(aln_name, run_name, iqtree_hmmster.out.iqtree)
+        get_bic(run_name, iqtree_hmmster.out.iqtree)
 
 }

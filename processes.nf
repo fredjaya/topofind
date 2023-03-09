@@ -5,7 +5,6 @@ process iqtree_r2 {
     publishDir "${params.out}/${run_name}", mode: "copy"
 
     input:
-        val aln_name
         val run_name
         path aln
         val nthreads
@@ -35,7 +34,6 @@ process hmm_sites_to_ratecats {
     publishDir "${params.out}/${run_name}", mode: "copy"
 
     input:
-        val aln_name 
         val run_name
         path sitelh 
         path alninfo
@@ -48,6 +46,24 @@ process hmm_sites_to_ratecats {
     """
     hmm_assign_sites.R ${sitelh} ${alninfo} ${run_name}
     """ 
+}
+
+process nexus_to_amas {
+
+    publishDir "${params.out}/${run_name}", mode: "copy"
+
+    input:
+        val run_name
+        path partition 
+
+    output:
+        path 'r2.partition_amas', emit: amas_parts
+
+    shell:
+    '''
+    sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
+    '''
+
 }
 
 process evaluate_partitions {
@@ -65,16 +81,10 @@ process evaluate_partitions {
         val run_name
         path partition
 
-    output:
-        path "*.partition_amas", optional: true, emit: amas_parts
-
     shell:
     '''
     if ((`cat !{partition} | wc -l` == 4)); then
         echo "\nWARNING: All sites in !{run_name} were assigned to a single class."
-    fi
-    if [[ `grep "#nexus" !{partition}` == "#nexus" ]]; then
-        sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
     fi
     '''
 }
@@ -85,7 +95,6 @@ process amas_split {
     publishDir "${params.out}/${run_name}", mode: "copy"
 
     input:
-        val aln_name
         val run_name
         path aln
         path partition
@@ -105,7 +114,6 @@ process iqtree_mfp {
     publishDir "${params.out}/${run_name}", mode: "copy"
 
     input:
-        val aln_name
         val run_name
         each path(splitted_aln)
         val nthreads
@@ -131,7 +139,6 @@ process concat_trees {
     //errorStrategy "ignore"
 
     input:
-        val aln_name
         val run_name
         path aln
         path "*.treefile"
@@ -161,7 +168,6 @@ process iqtree_hmmster {
      */
 
     input:
-        val aln_name
         val run_name
         path aln
         path trees
@@ -208,7 +214,6 @@ process get_bic {
     publishDir "${params.out}/${run_name}", mode: "copy"
 
     input:
-        val aln_name 
         val run_name
         path iqtree 
 

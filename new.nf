@@ -23,6 +23,6 @@ workflow {
     nthreads    = ${params.nthreads}
     """
 
-    split_aln(params.aln_name, "01_split_A_B", params.aln_ch, params.nthreads)
-    mast(params.aln_name, "02_mast_A_B", params.aln_ch, split_aln.out.t2, "GTR+FO+G,GTR+FO+G", params.nthreads)
+    split_aln("01_split_A_B", params.aln_ch, params.nthreads)
+    mast("02_mast_A_B", params.aln_ch, split_aln.out.t2, "GTR+FO+G,GTR+FO+G", params.nthreads)
 }
