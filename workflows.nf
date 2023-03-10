@@ -17,6 +17,14 @@ include {
 
 } from './processes.nf'                            
 
+workflow pre {
+    
+    take:
+        iteration
+
+    main:
+        kk
+}
 
 workflow split_aln {
     
@@ -39,9 +47,8 @@ workflow split_aln {
         store_partitioned_trees(run_name, iqtree_mfp.out.trees.collect())
 
     emit:
-        t1 = iqtree_r2.out.tree
-        t2 = iqtree_mfp.out.trees.collect()
-        //
+        PartitionedTrees = store_partitioned_trees.out.json
+
 }
 
 workflow mast {
@@ -53,7 +60,7 @@ workflow mast {
     take:
         run_name
         aln_ch
-        trees
+        partitioned_trees_json
         mast_submodel 
         nthreads
 

@@ -1,5 +1,35 @@
 nextflow.enable.dsl = 2
 
+def recurse_trees(run_names) {
+    new_names = []
+    run_names.eachWithIndex { old_run, run_idx ->
+        old_run = old_run.split("_").tail()
+        old_run.eachWithIndex { t0, t_idx ->
+            n = [] 
+            t1 = "${t0}A" 
+            t2 = "${t0}B"
+            n += [old_run, t1, t2]
+            new_names << n.flatten() - t0
+        }
+    }
+    return new_names
+}
+
+process initialise_values {
+
+    publishDir "${params.out}"
+    debug "true"
+
+    input:
+        val n_trees
+
+    script:
+    """
+    initialise_values.py ${n_trees}
+    """
+
+}
+
 process iqtree_r2 {
 
     publishDir "${params.out}/${run_name}", mode: "copy"
@@ -250,12 +280,15 @@ process compare_bic {
 
 process store_partitioned_trees {
 
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out}", mode: "copy"
     debug "true"
 
     input:
         val run_name
         path trees
+
+    output:
+        path "PartitionedTrees.json", emit: json
     
     script:
     """
