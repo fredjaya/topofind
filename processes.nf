@@ -1,31 +1,16 @@
 nextflow.enable.dsl = 2
 
-def recurse_trees(run_names) {
-    new_names = []
-    run_names.eachWithIndex { old_run, run_idx ->
-        old_run = old_run.split("_").tail()
-        old_run.eachWithIndex { t0, t_idx ->
-            n = [] 
-            t1 = "${t0}A" 
-            t2 = "${t0}B"
-            n += [old_run, t1, t2]
-            new_names << n.flatten() - t0
-        }
-    }
-    return new_names
-}
+process update_run_names {
 
-process initialise_values {
+    input: 
+        val run_names
 
-    publishDir "${params.out}"
-    debug "true"
-
-    input:
-        val n_trees
+    output: 
+        stdout
 
     script:
     """
-    initialise_values.py ${n_trees}
+    update_run_names.py "${run_names}"
     """
 
 }

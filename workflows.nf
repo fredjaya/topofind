@@ -1,6 +1,7 @@
 nextflow.enable.dsl = 2
 
-include {                                          
+include {
+    update_run_names;
     iqtree_r2;
     hmm_sites_to_ratecats;
     nexus_to_amas;
@@ -17,13 +18,18 @@ include {
 
 } from './processes.nf'                            
 
-workflow pre {
+workflow test {
     
-    take:
-        iteration
+    take: run_names
 
-    main:
-        kk
+    main: 
+        run_names.view()
+        update_run_names(run_names)
+        update_run_names.out[0].view()
+
+    emit: 
+        new_names = update_run_names.out[0]
+
 }
 
 workflow split_aln {
