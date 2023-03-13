@@ -19,9 +19,13 @@ workflow {
     aln         = ${params.aln}
     nthreads    = ${params.nthreads}
     """
-    
+   
+    /*
+     * Empty variables for the first iteration
+     */ 
     run_name = "null"
+    partitioned_aln = "null"
     iterative
-        .scan(run_name, params.aln_ch, params.nthreads)
+        .scan(run_name, params.aln_ch, file(partitioned_aln), params.nthreads)
 
 }

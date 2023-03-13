@@ -25,7 +25,7 @@ workflow iterative {
     take:
         run_name
         aln_ch
-        // TODO: add channel for split aln
+        partitioned_aln
         nthreads
 
     main:
@@ -33,17 +33,18 @@ workflow iterative {
         update_run_names(run_name.flatten())
         new_names = update_run_names.out.map{ it -> it.trim() }
         nthreads = nthreads.map { it -> it.get(0) }
-
+        // TODO: check partitioned_aln conversion
         // TODO: output submodel
         update_run_names.out.view()
-        split_aln(new_names, aln_ch, nthreads)
+        split_aln(new_names, aln_ch, partitioned_aln, nthreads)
         mast(new_names, aln_ch, split_aln.out.PartitionedTrees,"GTR+FO+G,GTR+FO+G", nthreads)
-        mast.out.aln.view()
+        mast.out.partitioned_aln.view()
         // TODO: collect BICs and compare
  
     emit: 
         run_name
-        aln = mast.out.aln
+        aln_ch
+        partitioned_aln = mast.out.partitioned_aln
         nthreads
 
 }
@@ -57,10 +58,11 @@ workflow split_aln {
     take:
         run_name
         aln_ch
+        partitioned_aln
         nthreads
 
     main:
-        iqtree_r2(run_name, aln_ch, nthreads)
+        iqtree_r2(run_name, aln_ch, partitioned_aln, nthreads)
         hmm_sites_to_ratecats(run_name, iqtree_r2.out.sitelh, iqtree_r2.out.alninfo)
         nexus_to_amas(run_name, hmm_sites_to_ratecats.out.partitions)
         evaluate_partitions_1(run_name, nexus_to_amas.out.amas_parts)
@@ -94,6 +96,7 @@ workflow mast {
         amas_split_2(run_name, aln_ch, parse_hmmster_partitions.out.amas_parts)
 
     emit:
-        aln = amas_split_2.out.aln.flatten()
+        // emit as tuple with run_name
+        partitioned_aln = amas_split_2.out.aln.flatten()
 
 }

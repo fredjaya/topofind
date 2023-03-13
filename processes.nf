@@ -30,7 +30,8 @@ process iqtree_r2 {
 
     input:
         val run_name
-        path aln
+        path original_aln
+        path partitioned_aln 
         val nthreads
 
     output:
@@ -46,6 +47,7 @@ process iqtree_r2 {
         path '*.log'
 
     script:
+    def aln = partitioned_aln.name != "null" ? "${partitioned_aln}" : "${original_aln}"
     """
     iqtree2 -s ${aln} -pre r2 -mrate E,R2,I+R2 -nt ${nthreads} \
         -wslr -wspr -alninfo  
