@@ -7,7 +7,7 @@ import json
 """
 Read args
 """
-part_names = sys.argv[1].split("_")[2:]
+part_names = sys.argv[1].split("_")[1:]
 trees = sorted(sys.argv[2:])
 
 """

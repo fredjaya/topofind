@@ -1,6 +1,7 @@
 nextflow.enable.dsl = 2
 
 include {
+    echo_test;
     update_run_names;
     iqtree_r2;
     hmm_sites_to_ratecats;
@@ -15,20 +16,23 @@ include {
     parse_hmmster_partitions
     get_bic;
     store_partitioned_trees;
+    prepare_trees;
 
 } from './processes.nf'                            
 
 workflow test {
     
-    take: run_names
+    take:
+        run_name
 
     main: 
-        run_names.view()
-        update_run_names(run_names)
-        update_run_names.out[0].view()
+        update_run_names(run_name)
+        // TODO: output submodel
+        //split_aln(update_run_names.out[0].flatten(), params.aln_ch, params.nthreads)
+        // Split channel here 
 
     emit: 
-        new_names = update_run_names.out[0]
+        new_names = update_run_names.out.map{ it -> it.trim() }
 
 }
 
@@ -44,6 +48,7 @@ workflow split_aln {
         nthreads
 
     main:
+        run_name = run_name.map{ it -> it.trim() }
         iqtree_r2(run_name, aln_ch, nthreads)
         hmm_sites_to_ratecats(run_name, iqtree_r2.out.sitelh, iqtree_r2.out.alninfo)
         nexus_to_amas(run_name, hmm_sites_to_ratecats.out.partitions)
@@ -71,7 +76,8 @@ workflow mast {
         nthreads
 
     main:
-        iqtree_hmmster(run_name, aln_ch, trees, mast_submodel, nthreads)
+        prepare_trees(run_name, partitioned_trees_json)
+        iqtree_hmmster(run_name, aln_ch, prepare_trees.out.input_trees, mast_submodel, nthreads)
         parse_hmmster_partitions(run_name, iqtree_hmmster.out.hmm)
         evaluate_partitions_2(run_name, parse_hmmster_partitions.out.amas_parts)
         amas_split_2(run_name, aln_ch, parse_hmmster_partitions.out.amas_parts)
@@ -88,14 +94,5 @@ workflow mast {
     //    class_2 = splitted_aln.class_2
     //    class_3 = splitted_aln.class_3
     //    bic = get_bic_t2_mast.out[0]
-
-}
-
-workflow evaluate_run {
-
-    take:    
-
-    main:
-        get_bic(run_name, iqtree_hmmster.out.iqtree)
 
 }

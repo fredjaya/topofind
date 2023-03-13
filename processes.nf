@@ -1,7 +1,16 @@
 nextflow.enable.dsl = 2
 
-process update_run_names {
+process echo_test {
+    input: val run_names
+    output: stdout
+    script:
+    """
+    echo "${run_names}"
+    """
 
+}
+process update_run_names {
+    
     input: 
         val run_names
 
@@ -278,6 +287,24 @@ process store_partitioned_trees {
     script:
     """
     store_splits.py ${run_name} ${trees}
+    """
+
+}
+
+process prepare_trees {
+
+    publishDir "${params.out}/${run_name}", mode: "copy"
+
+    input:
+        val run_name
+        path PartitionedTrees
+
+    output:
+        path "*.tre", emit: input_trees
+    
+    script:
+    """
+    retrieve_pt.py ${PartitionedTrees} ${run_name}
     """
 
 }

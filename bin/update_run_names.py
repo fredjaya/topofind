@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import ast
+import re
 
 def recurse_trees(run_names):
     try:
@@ -27,7 +28,10 @@ def form_names(new_list):
         formed.append(name)
     return formed
 
-run_names = ast.literal_eval(sys.argv[1])
-new_list = recurse_trees(run_names)
-print(form_names(new_list))
-
+run_names = sys.argv[1]
+if run_names == "null":
+    print("2_A_B") 
+else:
+    run_names = ast.literal_eval(run_names)
+    new_list = recurse_trees(run_names)
+    print(form_names(new_list))

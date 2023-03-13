@@ -23,9 +23,14 @@ workflow {
     nthreads    = ${params.nthreads}
     """
     
-    n_trees = 3
-    run_names = "['3_B_AA_AB', '3_A_BA_BB']"
-    test.recurse(run_names).times(3)
-    //split_aln("01_split_A_B", params.aln_ch, params.nthreads)
-    //mast("02_mast_A_B", params.aln_ch, split_aln.out.t2, "GTR+FO+G,GTR+FO+G", params.nthread)
+    //run_names = "['3_A_BA_BB', '3_B_AA_AB']"
+    //run_names = "null"
+    //test.recurse(run_names, file(params.aln_ch), params.nthreads).times(2)
+    //test(run_names, params.aln_ch, params.nthreads)
+    
+    run_name = "null"
+    test(run_name)
+    split_aln(test.out.new_names, params.aln_ch, params.nthreads)
+    mast(test.out.new_names, params.aln_ch, split_aln.out.PartitionedTrees, "GTR+FO+G,GTR+FO+G", params.nthreads)
+
 }
