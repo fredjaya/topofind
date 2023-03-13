@@ -20,19 +20,24 @@ include {
 
 } from './processes.nf'                            
 
-workflow test {
+workflow iterative {
     
     take:
         run_name
+        aln
+        nthreads
 
     main: 
         update_run_names(run_name)
+        new_runs = update_run_names.out.map{ it -> it.trim() }
         // TODO: output submodel
-        //split_aln(update_run_names.out[0].flatten(), params.aln_ch, params.nthreads)
-        // Split channel here 
-
+        split_aln(new_runs, aln, nthreads)
+        mast(new_runs, aln, split_aln.out.PartitionedTrees,"GTR+FO+G,GTR+FO+G", nthreads)
+        mast.out.aln.view()
+        // TODO: collect BICs and compare
+ 
     emit: 
-        new_names = update_run_names.out.map{ it -> it.trim() }
+        aln = mast.out.aln        
 
 }
 
