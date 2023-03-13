@@ -24,20 +24,27 @@ workflow iterative {
     
     take:
         run_name
-        aln
+        aln_ch
+        // TODO: add channel for split aln
         nthreads
 
-    main: 
-        update_run_names(run_name)
-        new_runs = update_run_names.out.map{ it -> it.trim() }
+    main:
+        // recurse converts channels into lists. path seems ok though.
+        update_run_names(run_name.flatten())
+        new_names = update_run_names.out.map{ it -> it.trim() }
+        nthreads = nthreads.map { it -> it.get(0) }
+
         // TODO: output submodel
-        split_aln(new_runs, aln, nthreads)
-        mast(new_runs, aln, split_aln.out.PartitionedTrees,"GTR+FO+G,GTR+FO+G", nthreads)
+        update_run_names.out.view()
+        split_aln(new_names, aln_ch, nthreads)
+        mast(new_names, aln_ch, split_aln.out.PartitionedTrees,"GTR+FO+G,GTR+FO+G", nthreads)
         mast.out.aln.view()
         // TODO: collect BICs and compare
  
     emit: 
-        aln = mast.out.aln        
+        run_name
+        aln = mast.out.aln
+        nthreads
 
 }
 

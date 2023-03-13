@@ -21,5 +21,7 @@ workflow {
     """
     
     run_name = "null"
-    iterative(run_name, params.aln_ch, params.nthreads)
+    iterative
+        .scan(run_name, params.aln_ch, params.nthreads)
+
 }
