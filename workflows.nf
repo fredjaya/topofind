@@ -48,7 +48,6 @@ workflow split_aln {
         nthreads
 
     main:
-        run_name = run_name.map{ it -> it.trim() }
         iqtree_r2(run_name, aln_ch, nthreads)
         hmm_sites_to_ratecats(run_name, iqtree_r2.out.sitelh, iqtree_r2.out.alninfo)
         nexus_to_amas(run_name, hmm_sites_to_ratecats.out.partitions)
@@ -81,18 +80,8 @@ workflow mast {
         parse_hmmster_partitions(run_name, iqtree_hmmster.out.hmm)
         evaluate_partitions_2(run_name, parse_hmmster_partitions.out.amas_parts)
         amas_split_2(run_name, aln_ch, parse_hmmster_partitions.out.amas_parts)
-        //amas_split.out[0]
-        //    .flatten()
-        //    .branch {
-        //        class_1: it =~ /class_1/
-        //        class_2: it =~ /class_2/
-        //        class_3: it =~ /class_3/
-        //    } .set { splitted_aln }
 
-    //emit:
-    //    class_1 = splitted_aln.class_1
-    //    class_2 = splitted_aln.class_2
-    //    class_3 = splitted_aln.class_3
-    //    bic = get_bic_t2_mast.out[0]
+    emit:
+        aln = amas_split_2.out.aln.flatten()
 
 }

@@ -308,3 +308,22 @@ process prepare_trees {
     """
 
 }
+
+process bic {
+
+    publishDir "${params.out}", mode: "copy"
+    debug "true"
+
+    input:
+        val run_name
+        path hmm
+
+    output:
+        path "BIC.json", emit: json
+    
+    script:
+    """
+    store_bic.py ${run_name} ${hmm}
+    """
+
+}

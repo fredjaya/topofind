@@ -7,6 +7,8 @@ include {
     mast;
 } from "./workflows.nf"
 
+include { update_run_names } from "./processes.nf"
+
 params.aln_ch = Channel
     .fromPath(params.aln)
 
@@ -29,8 +31,10 @@ workflow {
     //test(run_names, params.aln_ch, params.nthreads)
     
     run_name = "null"
-    test(run_name)
-    split_aln(test.out.new_names, params.aln_ch, params.nthreads)
-    mast(test.out.new_names, params.aln_ch, split_aln.out.PartitionedTrees, "GTR+FO+G,GTR+FO+G", params.nthreads)
-
+    update_run_names(run_name) 
+    new_runs = update_run_names.out.map{ it -> it.trim() }
+    split_aln(new_runs, params.aln_ch, params.nthreads)
+    mast(new_runs, params.aln_ch, split_aln.out.PartitionedTrees, "GTR+FO+G,GTR+FO+G", params.nthreads)
+    // TODO: Add BIC comparison here
+    //mast.out.aln.view()
 }
