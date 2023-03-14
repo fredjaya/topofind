@@ -29,7 +29,7 @@ def form_names(new_list):
     return formed
 
 run_names = sys.argv[1]
-if run_names == "null":
+if run_names == "true_none":
     print("2_A_B") 
 else:
     run_names = ast.literal_eval(run_names)

@@ -26,11 +26,11 @@ process update_run_names {
 
 process iqtree_r2 {
 
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
         val run_name
-        path original_aln
+        path base_aln
         path partitioned_aln 
         val nthreads
 
@@ -47,7 +47,7 @@ process iqtree_r2 {
         path '*.log'
 
     script:
-    def aln = partitioned_aln.name != "null" ? "${partitioned_aln}" : "${original_aln}"
+    def aln = partitioned_aln.name != "true_none" ? "${partitioned_aln}" : "${base_aln}"
     """
     iqtree2 -s ${aln} -pre r2 -mrate E,R2,I+R2 -nt ${nthreads} \
         -wslr -wspr -alninfo  
@@ -57,7 +57,7 @@ process iqtree_r2 {
 process hmm_sites_to_ratecats {
     // Assign sites to FreeRate classes or tree mixtures with the HMM
 
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
         val run_name
@@ -76,7 +76,7 @@ process hmm_sites_to_ratecats {
 
 process nexus_to_amas {
 
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
         val run_name
@@ -100,7 +100,7 @@ process evaluate_partitions {
      * AMAS compliant
      */
 
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
     debug true
     
     input:
@@ -118,7 +118,7 @@ process evaluate_partitions {
 process amas_split {
     // Split alignment according to class partitions
    
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
         val run_name
@@ -137,7 +137,7 @@ process amas_split {
 process iqtree_mfp {
 
     //errorStrategy { task.exitStatus == 2 ? "ignore" : "terminate" }
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
         val run_name
@@ -161,7 +161,7 @@ process concat_trees {
     // Combine trees from partitioned sites for MAST input
 
     debug true
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
     //errorStrategy "ignore"
 
     input:
@@ -182,7 +182,7 @@ process concat_trees {
 
 process iqtree_hmmster {
 
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
     errorStrategy { task.exitStatus == 2 ? 'ignore' : 'terminate' } 
     /*
      * exitStatus == 2  
@@ -217,7 +217,7 @@ process iqtree_hmmster {
 
 process parse_hmmster_partitions {
 
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
         val run_name
@@ -237,7 +237,7 @@ process get_bic {
     // From *.iqtree for single tree reconstruction and MAST
     // Then append to existing models
     
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
         val run_name
@@ -256,7 +256,7 @@ process get_bic {
 
 process compare_bic {
 
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
     debug "true"
 
     input:
@@ -276,7 +276,7 @@ process compare_bic {
 
 process store_partitioned_trees {
 
-    publishDir "${params.out}", mode: "copy"
+    publishDir "${params.out_dir}", mode: "copy"
     debug "true"
 
     input:
@@ -295,7 +295,7 @@ process store_partitioned_trees {
 
 process prepare_trees {
 
-    publishDir "${params.out}/${run_name}", mode: "copy"
+    publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
         val run_name
@@ -313,7 +313,7 @@ process prepare_trees {
 
 process bic {
 
-    publishDir "${params.out}", mode: "copy"
+    publishDir "${params.out_dir}", mode: "copy"
     debug "true"
 
     input:

@@ -17,33 +17,29 @@ include {
     get_bic;
     store_partitioned_trees;
     prepare_trees;
-
 } from './processes.nf'                            
 
-workflow iterative {
+workflow iteration {
     
     take:
-        run_name
-        aln_ch
+        prev_runs 
+        base_aln
         partitioned_aln
         nthreads
 
     main:
-        // recurse converts channels into lists. path seems ok though.
-        update_run_names(run_name.flatten())
-        new_names = update_run_names.out.map{ it -> it.trim() }
-        nthreads = nthreads.map { it -> it.get(0) }
-        // TODO: check partitioned_aln conversion
+        update_run_names(prev_runs)
+        run_name = update_run_names.out.map{ it -> it.trim() }
         // TODO: output submodel
         update_run_names.out.view()
-        split_aln(new_names, aln_ch, partitioned_aln, nthreads)
-        mast(new_names, aln_ch, split_aln.out.PartitionedTrees,"GTR+FO+G,GTR+FO+G", nthreads)
+        split_aln(run_name, base_aln, partitioned_aln, nthreads)
+        mast(run_name, base_aln, split_aln.out.PartitionedTrees,"GTR+FO+G,GTR+FO+G", nthreads)
         mast.out.partitioned_aln.view()
         // TODO: collect BICs and compare
  
     emit: 
         run_name
-        aln_ch
+        base_aln
         partitioned_aln = mast.out.partitioned_aln
         nthreads
 
@@ -57,16 +53,16 @@ workflow split_aln {
 
     take:
         run_name
-        aln_ch
+        base_aln
         partitioned_aln
         nthreads
 
     main:
-        iqtree_r2(run_name, aln_ch, partitioned_aln, nthreads)
+        iqtree_r2(run_name, base_aln, partitioned_aln, nthreads)
         hmm_sites_to_ratecats(run_name, iqtree_r2.out.sitelh, iqtree_r2.out.alninfo)
         nexus_to_amas(run_name, hmm_sites_to_ratecats.out.partitions)
         evaluate_partitions_1(run_name, nexus_to_amas.out.amas_parts)
-        amas_split_1(run_name, aln_ch, nexus_to_amas.out.amas_parts)
+        amas_split_1(run_name, base_aln, nexus_to_amas.out.amas_parts)
         iqtree_mfp(run_name, amas_split_1.out.aln.flatten(), nthreads)
         store_partitioned_trees(run_name, iqtree_mfp.out.trees.collect())
 
@@ -83,17 +79,17 @@ workflow mast {
 
     take:
         run_name
-        aln_ch
+        base_aln
         partitioned_trees_json
         mast_submodel 
         nthreads
 
     main:
         prepare_trees(run_name, partitioned_trees_json)
-        iqtree_hmmster(run_name, aln_ch, prepare_trees.out.input_trees, mast_submodel, nthreads)
+        iqtree_hmmster(run_name, base_aln, prepare_trees.out.input_trees, mast_submodel, nthreads)
         parse_hmmster_partitions(run_name, iqtree_hmmster.out.hmm)
         evaluate_partitions_2(run_name, parse_hmmster_partitions.out.amas_parts)
-        amas_split_2(run_name, aln_ch, parse_hmmster_partitions.out.amas_parts)
+        amas_split_2(run_name, base_aln, parse_hmmster_partitions.out.amas_parts)
 
     emit:
         // emit as tuple with run_name
