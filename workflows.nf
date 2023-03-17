@@ -1,7 +1,6 @@
 nextflow.enable.dsl = 2
 
 include {
-    echo_test;
     update_run_names;
     iqtree_r2;
     hmm_sites_to_ratecats;
@@ -22,26 +21,18 @@ include {
 workflow iteration {
     
     take:
-        prev_runs 
+        run_name
         base_aln
         partitioned_aln
         nthreads
 
     main:
-        update_run_names(prev_runs)
-        run_name = update_run_names.out.map{ it -> it.trim() }
         // TODO: output submodel
-        update_run_names.out.view()
         split_aln(run_name, base_aln, partitioned_aln, nthreads)
         mast(run_name, base_aln, split_aln.out.PartitionedTrees,"GTR+FO+G,GTR+FO+G", nthreads)
-        mast.out.partitioned_aln.view()
+        // TODO: must ensure aln_paths are always returned 
+        new_runs = update_run_names(run_name, mast.out.partitioned_aln.collect())
         // TODO: collect BICs and compare
- 
-    emit: 
-        run_name
-        base_aln
-        partitioned_aln = mast.out.partitioned_aln
-        nthreads
 
 }
 

@@ -1,29 +1,5 @@
 nextflow.enable.dsl = 2
 
-process echo_test {
-    input: val run_names
-    output: stdout
-    script:
-    """
-    echo "${run_names}"
-    """
-
-}
-process update_run_names {
-    
-    input: 
-        val run_names
-
-    output: 
-        stdout
-
-    script:
-    """
-    update_run_names.py "${run_names}"
-    """
-
-}
-
 process iqtree_r2 {
 
     publishDir "${params.out_dir}/${run_name}", mode: "copy"
@@ -329,3 +305,21 @@ process bic {
     """
 
 }
+
+process update_run_names {
+   
+    debug 'true' 
+    input: 
+        val run_name
+        val aln_paths
+
+    output: 
+        stdout
+
+    script:
+    """
+    update_run_names.py ${run_name} "${aln_paths}"
+    """
+
+}
+

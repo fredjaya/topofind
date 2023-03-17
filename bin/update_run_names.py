@@ -1,37 +1,37 @@
 #!/usr/bin/env python3
+from recmast import update_run_name
 import sys
-import ast
 import re
 
-def recurse_trees(run_names):
-    try:
-        new_list=[]
-        for old_run in run_names:
-            old_parts = old_run.split("_")
-            del old_parts[0]
-            for t0 in old_parts:
-                n = old_parts.copy()
-                n.remove(t0)
-                t1 = f"{t0}A"
-                t2 = f"{t0}B"
-                n += [t1, t2]
-                new_list.append(n)
-        return new_list
-    except AttributeError:
-        '''When tree_list==None, you cant .copy()'''
-        pass
+run_name = sys.argv[1]
+aln_paths = sys.argv[2]
 
-def form_names(new_list):
-    formed = []
-    for l in new_list:
-        name = str(len(l)) + "_" + "_".join(l)
-        formed.append(name)
-    return formed
+"""
+Convert aln_paths to list
+"""
+aln_paths = re.sub("\[|\]", "", aln_paths)
+aln_paths = aln_paths.split(",")
 
-run_names = sys.argv[1]
-if run_names == "true_none":
-    print("2_A_B") 
-else:
-    run_names = ast.literal_eval(run_names)
-    new_list = recurse_trees(run_names)
-    print(form_names(new_list))
+"""
+Remove trailing/leading spaces from elements
+"""
+aln_paths = [a.strip() for a in aln_paths]
+
+"""
+Sort aln_paths so they correspond to the parts
+"""
+aln_paths = sorted(aln_paths, key = lambda x: x.rsplit('/', 1)[-1])
+
+"""
+For each part, generate new names for the next run.
+Match with the corresponding part name and save to dict, or throw error
+"""
+rs = run_name.split("_")
+assert len(rs[1:]) == len(aln_paths)
+
+NewRuns = {}
+for p, aln in zip(rs[1:], aln_paths):
+    new_name = update_run_name(rs, p)
+    NewRuns[new_name] = aln
+
+print(NewRuns)
