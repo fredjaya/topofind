@@ -34,4 +34,6 @@ for p, aln in zip(rs[1:], aln_paths):
     new_name = update_run_name(rs, p)
     NewRuns[new_name] = aln
 
-print(NewRuns)
+with open("NewRuns.tsv", "w") as f:
+    for run, aln in NewRuns.items():
+        f.write(f"{run}\t{aln}\n")

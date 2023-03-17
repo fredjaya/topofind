@@ -30,9 +30,9 @@ workflow iteration {
         // TODO: output submodel
         split_aln(run_name, base_aln, partitioned_aln, nthreads)
         mast(run_name, base_aln, split_aln.out.PartitionedTrees,"GTR+FO+G,GTR+FO+G", nthreads)
-        // TODO: must ensure aln_paths are always returned 
         new_runs = update_run_names(run_name, mast.out.partitioned_aln.collect())
         // TODO: collect BICs and compare
+        // TODO: combine NewRuns.tsv
 
 }
 

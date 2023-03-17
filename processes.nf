@@ -308,13 +308,14 @@ process bic {
 
 process update_run_names {
    
-    debug 'true' 
+    publishDir "${params.out_dir}", mode: "copy"
+    
     input: 
         val run_name
         val aln_paths
 
     output: 
-        stdout
+        path "NewRuns.tsv"
 
     script:
     """

@@ -1,9 +1,4 @@
-import sys
-import ast
-import re
-
-def splitted_run_name(run_name):
-    return run_name.split("_")
+import json
 
 def update_run_name(splitted_run_name, p_to_split):
     """
@@ -19,13 +14,6 @@ def update_run_name(splitted_run_name, p_to_split):
     p1 = f"{p_to_split}A"
     p2 = f"{p_to_split}B"
     return f"{n}_{p}_{p1}_{p2}"
-
-def form_names(new_list):
-    formed = []
-    for l in new_list:
-        name = str(len(l)) + "_" + "_".join(l)
-        formed.append(name)
-    return formed
 
 # TODO: move to test
 assert update_run_name([2, 'A', 'B'], "B") == "3_A_BA_BB"
