@@ -1,13 +1,26 @@
 nextflow.enable.dsl = 2
 
+process test {
+
+    debug 'true'
+    input:
+        tuple val(run_name), file(part_aln)
+        path base_aln
+        val nthreads
+    
+    script:
+    """
+    echo $run_name $part_aln $base_aln $nthreads
+    """
+}
+
 process iqtree_r2 {
 
     publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
-        val run_name
+        tuple val(run_name), file(part_aln)
         path base_aln
-        path partitioned_aln 
         val nthreads
 
     output:
@@ -23,9 +36,9 @@ process iqtree_r2 {
         path '*.log'
 
     script:
-    def aln = partitioned_aln.name != "true_none" ? "${partitioned_aln}" : "${base_aln}"
+    def aln = part_aln.name != "true_none" ? "${part_aln}" : "${base_aln}"
     """
-    iqtree2 -s ${aln} -pre r2 -mrate E,R2,I+R2 -nt ${nthreads} \
+    iqtree2 -s ${aln} -pre r2 -mrate E+R2,R2,I+R2 -nt ${nthreads} \
         -wslr -wspr -alninfo  
     """ 
 }
@@ -36,7 +49,7 @@ process hmm_sites_to_ratecats {
     publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
-        val run_name
+        tuple val(run_name), file(part_aln)
         path sitelh 
         path alninfo
 
@@ -46,7 +59,7 @@ process hmm_sites_to_ratecats {
 
     script:
     """
-    hmm_assign_sites.R ${sitelh} ${alninfo} ${run_name}
+    hmm_assign_sites.R ${sitelh} ${alninfo}
     """ 
 }
 
@@ -55,7 +68,7 @@ process nexus_to_amas {
     publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
-        val run_name
+        tuple val(run_name), file(part_aln)
         path partition 
 
     output:
@@ -72,21 +85,21 @@ process evaluate_partitions {
     /* 
      * Terminate pipeline if all sites were assigned to a single class
      * i.e. one partition
-     * Otherwise, convert .nex partition files output by IQTREE to be 
-     * AMAS compliant
      */
 
     publishDir "${params.out_dir}/${run_name}", mode: "copy"
+    errorStrategy "finish"
     debug true
     
     input:
-        val run_name
+        tuple val(run_name), file(part_aln)
         path partition
 
     shell:
     '''
-    if ((`cat !{partition} | wc -l` == 4)); then
+    if ((`cat !{partition} | wc -l` == 1)); then
         echo "\nWARNING: All sites in !{run_name} were assigned to a single class."
+        exit 1
     fi
     '''
 }
@@ -97,7 +110,7 @@ process amas_split {
     publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
-        val run_name
+        tuple val(run_name), file(part_aln)
         path aln
         path partition
 
@@ -105,6 +118,7 @@ process amas_split {
         path "*.fas", emit: aln
 
     script:
+    def aln = part_aln.name != "true_none" ? "${part_aln}" : "${base_aln}"
     """
     AMAS.py split -l ${partition} -i ${aln} -f fasta -d dna
     """

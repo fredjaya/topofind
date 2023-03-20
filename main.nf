@@ -2,9 +2,6 @@ nextflow.enable.dsl = 2
 
 include { iteration } from "./workflows.nf"
 
-params.base_aln_ch = Channel.fromPath(params.base_aln)
-params.part_aln_ch = Channel.fromPath(params.part_aln)
-
 workflow {
 
     /*
@@ -15,14 +12,10 @@ workflow {
     base_dir    = ${baseDir}
     out_dir     = ${params.out_dir}
     base_aln    = ${params.base_aln}
-    part_aln    = ${params.part_aln}
+    run_file    = ${params.run_file}
     nthreads    = ${params.nthreads}
-    prev_runs   = ${params.prev_runs}
     """
-   
-    /*
-     * Empty variables for the first iteration
-     */ 
-    iteration(params.prev_runs, params.base_aln_ch, params.part_aln_ch, params.nthreads)
+
+    iteration(params.base_aln, params.run_file, params.submodel, params.nthreads)
 
 }
