@@ -66,6 +66,8 @@ process hmm_sites_to_ratecats {
 process nexus_to_amas {
 
     publishDir "${params.out_dir}/${run_name}", mode: "copy"
+    errorStrategy "ignore"
+    debug true
 
     input:
         tuple val(run_name), file(part_aln)
@@ -76,7 +78,12 @@ process nexus_to_amas {
 
     shell:
     '''
-    sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
+    if ((`cat !{partition} | wc -l` == 4)); then
+        echo "\nWARNING: All sites in !{run_name} were assigned to a single class."
+        exit 1
+    else
+        sed '1,2d; $d; s/\tcharset //; s/;$//' !{partition} > !{partition}_amas
+    fi
     '''
 
 }
@@ -88,7 +95,7 @@ process evaluate_partitions {
      */
 
     publishDir "${params.out_dir}/${run_name}", mode: "copy"
-    errorStrategy "finish"
+    errorStrategy 'ignore'
     debug true
     
     input:
@@ -97,10 +104,6 @@ process evaluate_partitions {
 
     shell:
     '''
-    if ((`cat !{partition} | wc -l` == 1)); then
-        echo "\nWARNING: All sites in !{run_name} were assigned to a single class."
-        exit 1
-    fi
     '''
 }
 
@@ -130,8 +133,7 @@ process iqtree_mfp {
     publishDir "${params.out_dir}/${run_name}", mode: "copy"
 
     input:
-        val run_name
-        each path(splitted_aln)
+        tuple val(run_name), file(part_aln), file(splitted_aln)
         val nthreads
 
     output:

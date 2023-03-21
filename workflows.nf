@@ -58,13 +58,13 @@ workflow split_aln {
         iqtree_r2(run_file, base_aln, nthreads)
         hmm_sites_to_ratecats(run_file, iqtree_r2.out.sitelh, iqtree_r2.out.alninfo)
         nexus_to_amas(run_file, hmm_sites_to_ratecats.out.partitions)
-        evaluate_partitions_1(run_file, nexus_to_amas.out.amas_parts)
+        //evaluate_partitions_1(run_file, nexus_to_amas.out.amas_parts)
         amas_split_1(run_file, base_aln, nexus_to_amas.out.amas_parts)
-        iqtree_mfp(run_file, amas_split_1.out.aln.flatten(), nthreads)
-        store_partitioned_trees(run_file, iqtree_mfp.out.trees.collect())
+        iqtree_mfp(run_file.combine(amas_split_1.out.aln.flatten()), nthreads)
+        //store_partitioned_trees(run_file, iqtree_mfp.out.trees.collect())
 
-    emit:
-        PartitionedTrees = store_partitioned_trees.out.json
+    //emit:
+        //PartitionedTrees = store_partitioned_trees.out.json
 
 }
 
