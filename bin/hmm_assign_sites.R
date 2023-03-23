@@ -11,8 +11,8 @@ library(MixtureModelHMM)
 hmm_sitelh <- run_HMM(site_info = sitelh, aln_info = alninfo)
 
 # Plot site assignment
-ggsave(filename = paste(prefix, "_site_assignment.png", sep = ""), device = "png",
+ggsave(filename = paste(prefix, "/r2_site_assignment.png", sep = ""), device = "png",
        plot = hmm_sitelh$alignment_plot)
 
 # Output partition file
-save_partitioning_scheme(hmm_result = hmm_sitelh, output_filename = paste(prefix, ".partition", sep = ""))
+save_partitioning_scheme(hmm_result = hmm_sitelh, output_filename = paste(prefix, "/r2.partition", sep = ""))

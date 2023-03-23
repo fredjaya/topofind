@@ -1,6 +1,6 @@
 import uuid
 import os
-import subprocess 
+from topofind import utils
 
 class SubAlignment():
     def __init__(self):
@@ -28,13 +28,23 @@ class SubAlignment():
         model and output site-lh and alninfo files.
         """
         os.mkdir(self.rid)
+        # TODO: Replace hardcode
         iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
         cmd = f"{iqtree_path} -s {aln_path} -pre {self.rid}/r2 -mrate R2 -nt {str(nthreads)} -wslr -wspr -alninfo"
-        print(cmd)
-        # Popen lets you access the I/O pipes. stdout and stderr specify which O pipes you want to access.
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
-        exit_code = process.returncode
-    
+        stdout, stderr, exit_code = utils.run_command(self.rid, cmd)
         if exit_code != 0:
-            print("Error")
+            # TODO: Deal with different cases.
+            print(stdout)
+
+    def run_Rhmm(self, repo_path):
+        """
+        Using the MixtureModelHMM in R, assign sites to one of two +R2 classes
+        """
+        rscript_path = os.path.join(repo_path, "../bin", "hmm_assign_sites.R")
+        sitelh = f"{self.rid}/r2.sitelh"
+        alninfo = f"{self.rid}/r2.alninfo"
+        cmd = f"Rscript {rscript_path} {sitelh} {alninfo} {self.rid}"
+        stdout, stderr, exit_code = utils.run_command(self.rid, cmd)
+        if exit_code != 0:
+            # TODO: Deal with different cases.
+            print(stdout)

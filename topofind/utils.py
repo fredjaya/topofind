@@ -1,16 +1,16 @@
-from Bio import SeqIO
+import subprocess
 
-def get_aln_length(aln_path):
+def run_command(rid, cmd):
     """
-    Get the longest sequence length to initialise the first 
-    PartitioningScheme.alignment = []
+    General function to run command-line processes.
     """
-    alns = SeqIO.parse(aln_path, "fasta")
-    seq_lengths = set()
-    for a in alns:
-        seq_lengths.update({len(a.seq)})
-    # TODO: What if unaligned, or length is variable?
-    return max(seq_lengths)
-
-def init_alignment(seq_length):
-    return ["0"]*seq_length
+    print(f"[{rid}]\t{cmd}")
+    # Popen lets you access the I/O pipes.
+    # stdout and stderr options specify which pipes you want to capture.
+    process = subprocess.Popen(cmd, shell=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # communicate() waits for the process to complete and returns a tuple of
+    # the captured pipes.
+    stdout, stderr = process.communicate()
+    exit_code = process.returncode
+    return stdout, stderr, exit_code
