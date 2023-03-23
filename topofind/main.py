@@ -41,6 +41,8 @@ def main():
             subalignment = SubAlignment()
             subalignment.run_r2(args.aln_path, args.num_threads)
             subalignment.run_Rhmm(repo_path)
+            # TODO: specific partitioned aln
+            subalignment.partition_aln(args.aln_path)
 
         # 2. Identify the partition with the lowest BIC after previous split()
         # 3. Run split()
