@@ -3,10 +3,14 @@ import os
 import re 
 from topofind import utils
 from Bio import SeqIO
+from io import StringIO
 
 class SubAlignment():
     def __init__(self):
         self.rid = self.random_id()
+        self.model = ""
+        self.r2_partition_A = {} # k: header; v: seq
+        self.r2_partition_B = {} 
         self.bic_1t = float()
         self.bic_2t = float()
         self.topo_A = ""
@@ -38,6 +42,19 @@ class SubAlignment():
             # TODO: Deal with different cases.
             print(stdout)
 
+    def parse_best_model(self):
+        """
+        "grep" the best substitution model from run_r2 and save as attribute
+        for downstream iq-tree runs
+        """
+        iqtree_file = f"{self.rid}/r2.iqtree"
+        r = re.compile("^Best-fit model according to BIC: ")
+
+        with open(iqtree_file, 'r') as f:
+            for line in f:
+                if re.search(r, line):
+                    self.model = line.split(" ")[-1]
+
     def run_Rhmm(self, repo_path):
         """
         Using the MixtureModelHMM in R, assign sites to one of two +R2 classes
@@ -65,7 +82,6 @@ class SubAlignment():
             for line in pfile:
                 if line.startswith("\tcharset"):
                     partitions.append(re.findall(r"(\d+-\d+)", line)[0])
-        print(partitions)
 
         # Read sequences and store as dict
         sequences = {}
@@ -75,14 +91,29 @@ class SubAlignment():
         # Write partitioned fasta files
         # enumerate iterates over an objects index and element
         for i, partition in enumerate(partitions):
+            # Each alignment is always split according to R2
             pname = "A"
             if i == 1:
                 pname = "B"
+            # TODO: what if partitions are not contiguous
             start, end = map(int, partition.split("-"))
             out_name = f"{self.rid}/partition_{pname}.fasta"
 
-            # TODO: what if partitions are not contiguous
-            with open(out_name, "w") as ofile:
-                for header, seq_record in sequences.items():
-                    ofile.write(f">{header}\n")
-                    ofile.write(f"{str(seq_record.seq[start-1:end])}\n")
+            for header, seq_record in sequences.items():
+                partitioned_seq = str(seq_record.seq[start-1:end])
+                if pname == 'A':
+                    self.r2_partition_A[header] = partitioned_seq
+                elif pname == 'B':
+                    self.r2_partition_B[header] = partitioned_seq
+
+    def run_iqtree_on_parts(self, nthreads):
+        """
+        Run iqtree using the best model from run_r2 on each new partition.
+        """
+        # TODO: Replace hardcode
+        iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
+        cmd = f"{iqtree_path} -s {part_aln} -pre {self.rid}/{pname} -mrate R2 -nt {str(nthreads)} -wslr -wspr -alninfo"
+        stdout, stderr, exit_code = utils.run_command(self.rid, cmd)
+        if exit_code != 0:
+            # TODO: Deal with different cases.
+            print(stdout)
