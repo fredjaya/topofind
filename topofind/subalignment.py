@@ -9,8 +9,8 @@ class SubAlignment():
     def __init__(self):
         self.rid = self.random_id()
         self.model = ""
-        self.r2_partition_A = {} # k: header; v: seq
-        self.r2_partition_B = {} 
+        #self.r2_partition_A = {} # k: header; v: seq
+        #self.r2_partition_B = {} 
         self.bic_1t = float()
         self.bic_2t = float()
         self.topo_A = ""
@@ -33,6 +33,7 @@ class SubAlignment():
         Take an input alignment, construct a single tree using the best-fitting +R2
         model and output site-lh and alninfo files.
         """
+        print(f"[{self.rid}]\tMaking a single tree with the best-fitting +R2 model")
         os.mkdir(self.rid)
         # TODO: Replace hardcode
         iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
@@ -53,12 +54,14 @@ class SubAlignment():
         with open(iqtree_file, 'r') as f:
             for line in f:
                 if re.search(r, line):
-                    self.model = line.split(" ")[-1]
+                    self.model = line.split(" ")[-1].strip()
+                    print(f"[{self.rid}]\tBest-fit model according to BIC: {self.model}")
 
     def run_Rhmm(self, repo_path):
         """
         Using the MixtureModelHMM in R, assign sites to one of two +R2 classes
         """
+        print(f"[{self.rid}]\tAssigning sites to rate-categories with HMM")
         rscript_path = os.path.join(repo_path, "../bin", "hmm_assign_sites.R")
         sitelh = f"{self.rid}/r2.sitelh"
         alninfo = f"{self.rid}/r2.alninfo"
@@ -75,6 +78,7 @@ class SubAlignment():
         TODO: 
             - check if previous alignment exists in memory
         """
+        print(f"[{self.rid}]\tPartitioning...")
         # Read partitions and save to list
         partitions = []
         part_path = f"{self.rid}/r2.partition"
@@ -83,7 +87,7 @@ class SubAlignment():
                 if line.startswith("\tcharset"):
                     partitions.append(re.findall(r"(\d+-\d+)", line)[0])
 
-        # Read sequences and store as dict
+        # Read alignment to split and store as dict
         sequences = {}
         for seq in SeqIO.parse(aln_file, "fasta"):
             sequences[seq.id] = seq
@@ -99,21 +103,46 @@ class SubAlignment():
             start, end = map(int, partition.split("-"))
             out_name = f"{self.rid}/partition_{pname}.fasta"
 
+            with open(out_name, "w") as ofile:
+                for header, whole_seq in sequences.items():
+                    part_seq = str(whole_seq.seq[start:end])
+                    ofile.write(f">{header}\n")
+                    ofile.write(f"{part_seq}\n")
+
+            """
             for header, seq_record in sequences.items():
                 partitioned_seq = str(seq_record.seq[start-1:end])
                 if pname == 'A':
                     self.r2_partition_A[header] = partitioned_seq
                 elif pname == 'B':
                     self.r2_partition_B[header] = partitioned_seq
+            """
 
-    def run_iqtree_on_parts(self, nthreads):
+    def run_iqtree_on_parts(self, pname, nthreads):
         """
         Run iqtree using the best model from run_r2 on each new partition.
         """
+        print(f"[{self.rid}]\tMaking trees for partition {pname}")
         # TODO: Replace hardcode
         iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
-        cmd = f"{iqtree_path} -s {part_aln} -pre {self.rid}/{pname} -mrate R2 -nt {str(nthreads)} -wslr -wspr -alninfo"
+        cmd = f"{iqtree_path} -s {self.rid}/partition_{pname}.fasta -pre {self.rid}/partition_{pname} -m {self.model} -nt {nthreads}"
         stdout, stderr, exit_code = utils.run_command(self.rid, cmd)
+
         if exit_code != 0:
             # TODO: Deal with different cases.
-            print(stdout)
+            print(stderr)
+
+    def iteration(self, aln, num_threads, repo_path):
+        """
+        Main pipeline for a single iteration of +R2, splitting, and HMMSTER
+        """
+        # TODO: What if R1 > R2?
+        self.run_r2(aln, num_threads)
+        self.parse_best_model()
+        self.run_Rhmm(repo_path)
+        self.partition_aln(aln)
+        # TODO: Run in parallel
+        self.run_iqtree_on_parts("A", num_threads)
+        self.run_iqtree_on_parts("B", num_threads)
+
+

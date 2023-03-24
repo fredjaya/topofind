@@ -4,7 +4,6 @@ def run_command(rid, cmd):
     """
     General function to run command-line processes.
     """
-    print(f"[{rid}]\t{cmd}")
     # Popen lets you access the I/O pipes.
     # stdout and stderr options specify which pipes you want to capture.
     process = subprocess.Popen(cmd, shell=True,

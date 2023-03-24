@@ -39,15 +39,7 @@ def main():
             # An instance is an individual object created from a class,
             # where a class is like a blueprint
             subalignment = SubAlignment()
-            # TODO: What if R1 > R2?
-            subalignment.run_r2(args.aln_path, args.num_threads)
-            subalignment.parse_best_model()
-            subalignment.run_Rhmm(repo_path)
-            # TODO: specific partitioned aln
-            subalignment.partition_aln(args.aln_path)
-            print(subalignment.r2_partition_A)
-            print(subalignment.r2_partition_B)
-
+            subalignment.iteration(args.aln_path, args.num_threads, repo_path)
 
         # 2. Identify the partition with the lowest BIC after previous split()
         # 3. Run split()
