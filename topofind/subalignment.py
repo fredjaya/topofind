@@ -38,10 +38,7 @@ class SubAlignment():
         # TODO: Replace hardcode
         iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
         cmd = f"{iqtree_path} -s {aln_path} -pre {self.rid}/r2 -mrate R2 -nt {str(nthreads)} -wslr -wspr -alninfo"
-        stdout, stderr, exit_code = utils.run_command(self.rid, cmd)
-        if exit_code != 0:
-            # TODO: Deal with different cases.
-            print(stdout)
+        stdout, stderr, exit_code = utils.run_command(cmd)
 
     def parse_best_model(self):
         """
@@ -56,6 +53,18 @@ class SubAlignment():
                 if re.search(r, line):
                     self.model = line.split(" ")[-1].strip()
                     print(f"[{self.rid}]\tBest-fit model according to BIC: {self.model}")
+    
+    def parse_bic(self, iqtree_file, attr):
+        """
+        "grep" the BIC value from an .iqtree file and 
+        save to either bic_1t or bic_2t
+        """
+        r = re.compile("\(BIC\)")
+        with open(iqtree_file, 'r') as f:
+            for line in f:
+                if re.search(r, line):
+                    line = line.split(" ")[-1].strip()
+                    setattr(self, attr, line)
 
     def run_Rhmm(self, repo_path):
         """
@@ -66,10 +75,7 @@ class SubAlignment():
         sitelh = f"{self.rid}/r2.sitelh"
         alninfo = f"{self.rid}/r2.alninfo"
         cmd = f"Rscript {rscript_path} {sitelh} {alninfo} {self.rid}"
-        stdout, stderr, exit_code = utils.run_command(self.rid, cmd)
-        if exit_code != 0:
-            # TODO: Deal with different cases.
-            print(stdout)
+        stdout, stderr, exit_code = utils.run_command(cmd)
 
     def partition_aln(self, aln_file):
         """
@@ -123,14 +129,28 @@ class SubAlignment():
         Run iqtree using the best model from run_r2 on each new partition.
         """
         print(f"[{self.rid}]\tMaking trees for partition {pname}")
+        file_prefix = f"{self.rid}/partition_{pname}"
         # TODO: Replace hardcode
         iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
-        cmd = f"{iqtree_path} -s {self.rid}/partition_{pname}.fasta -pre {self.rid}/partition_{pname} -m {self.model} -nt {nthreads}"
-        stdout, stderr, exit_code = utils.run_command(self.rid, cmd)
+        cmd = f"{iqtree_path} -s {file_prefix}.fasta -pre {file_prefix} -m {self.model} -nt {nthreads}"
+        stdout, stderr, exit_code = utils.run_command(cmd)
 
-        if exit_code != 0:
-            # TODO: Deal with different cases.
-            print(stderr)
+    def concat_part_trees(self):
+        """
+        Concatenate trees made from part A and B into a single file for tree mixture input
+        """
+        # TODO: Account for only one topology
+        with open(f"{self.rid}/partition_A.treefile", 'r') as tfile_A, \
+        open(f"{self.rid}/partition_B.treefile", 'r') as tfile_B, \
+        open(f"{self.rid}/concat.treefile", 'w') as outfile:
+            outfile.write(tfile_A.read())
+            outfile.write(tfile_B.read())
+
+    def run_hmmster(self, original_aln, num_threads):
+        print(f"[{self.rid}]\tRunning HMMSTER")
+        iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
+        cmd = f"{iqtree_path} -s {original_aln} -pre {self.rid}/hmmster -m {self.model}+T -nt {num_threads} -hmmster{{gm}} -te {self.rid}/concat.treefile"
+        stdout, stderr, exit_code = utils.run_command(cmd)
 
     def iteration(self, aln, num_threads, repo_path):
         """
@@ -139,10 +159,14 @@ class SubAlignment():
         # TODO: What if R1 > R2?
         self.run_r2(aln, num_threads)
         self.parse_best_model()
+        self.parse_bic(f"{self.rid}/r2.iqtree", "bic_1t")
         self.run_Rhmm(repo_path)
         self.partition_aln(aln)
         # TODO: Run in parallel
         self.run_iqtree_on_parts("A", num_threads)
         self.run_iqtree_on_parts("B", num_threads)
-
-
+        self.concat_part_trees()
+        self.run_hmmster(aln, num_threads)
+        self.parse_bic(f"{self.rid}/hmmster.iqtree", "bic_2t")
+        
+        print(vars(self))
