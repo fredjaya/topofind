@@ -27,12 +27,17 @@ Rscript install_pacakges.R
 TopoFind.py -a data/test1.fa
 ```  
 
+- Set the number of threads (e.g. 4) to use for IQ-TREE:  
+```
+TopoFind.py -a data/test1.fa -nt 4
+```  
+
 - Show all available options:  
 ```
 TopoFind.py -h  
 ```
 
-- Run unit tests (for my own reference):  
+- Run unit tests:  
 ```
-python3 -m run.py -h  
+python3 -m unittest tests/*
 ```

@@ -63,7 +63,7 @@ class SubAlignment():
         with open(iqtree_file, 'r') as f:
             for line in f:
                 if re.search(r, line):
-                    line = line.split(" ")[-1].strip()
+                    line = float(line.split(" ")[-1].strip())
                     setattr(self, attr, line)
 
     def run_Rhmm(self, repo_path):
