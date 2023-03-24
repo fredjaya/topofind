@@ -13,8 +13,8 @@ class SubAlignment():
         #self.r2_partition_B = {} 
         self.bic_1t = float()
         self.bic_2t = float()
-        self.topo_A = ""
-        self.topo_B = ""
+        self.topology_A = ""
+        self.topology_B = ""
         self.sites_A = []
         self.sites_B = []
 
@@ -152,6 +152,31 @@ class SubAlignment():
         cmd = f"{iqtree_path} -s {original_aln} -pre {self.rid}/hmmster -m {self.model}+T -nt {num_threads} -hmmster{{gm}} -te {self.rid}/concat.treefile"
         stdout, stderr, exit_code = utils.run_command(cmd)
 
+    def parse_topologies(self):
+        """
+        Store output HMMSTER topologies
+        """
+        with open(f"{self.rid}/hmmster.treefile", 'r') as f:
+            for line, pname in zip(f, ['A', 'B']):
+                setattr(self, f"topology_{pname}", line.strip())
+
+    def parse_hmm_sites(self):
+        """
+        Store output HMMSTER topologies
+        """
+        r = re.compile(r"\[\d+,\d+\]\t\d+$")
+        with open(f"{self.rid}/hmmster.hmm", 'r') as f:
+            for line in f:
+                if line.startswith("["):
+                    line = line.split("\t")
+                    category = line[1].strip()
+                    sites = re.sub(",", "-", line[0])
+                    
+                    if category == "1":
+                        self.sites_A.append(sites)
+                    elif category == "2":
+                        self.sites_B.append(sites)
+
     def iteration(self, aln, num_threads, repo_path):
         """
         Main pipeline for a single iteration of +R2, splitting, and HMMSTER
@@ -167,6 +192,8 @@ class SubAlignment():
         self.run_iqtree_on_parts("B", num_threads)
         self.concat_part_trees()
         self.run_hmmster(aln, num_threads)
+        # TODO: Get correct HMM BIC
         self.parse_bic(f"{self.rid}/hmmster.iqtree", "bic_2t")
-        
+        self.parse_topologies() 
+        self.parse_hmm_sites() 
         print(vars(self))
