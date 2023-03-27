@@ -15,10 +15,8 @@ class TestSubAlignment(unittest.TestCase):
         self.assertTrue(subaln.model == 'JC+R2')
         self.assertAlmostEqual(subaln.bic_1t, 83581.5, delta=0.1)
         self.assertAlmostEqual(subaln.bic_2t, 81088.3, delta=0.1)
-        self.assertTrue(subaln.sites_B == ['[3501-5000]'])
-        self.assertTrue(subaln.sites_A == ['[1-3500]'])
-        self.assertTrue(subaln.sites_B == ['[3501-5000]'])
-        self.assertTrue(subaln.sites_B == ['[3501-5000]'])
+        self.assertTrue(subaln.sites_A == [(1,3500)])
+        self.assertTrue(subaln.sites_B == [(3501,5000)])
 
 if __name__ == '__main__':
     unittest.main()

@@ -18,9 +18,8 @@ class SubAlignment():
         self.sites_A = []
         self.sites_B = []
 
-    def sites_all(self):
-        # Moved out of __init__ as it can be derived from existing attributes
-        return self.sites_A + self.sites_B
+    def total_sites(self):
+        return max(self.sites_A[-1][1], self.sites_B[-1][1])
 
     def random_id(self):
         """
@@ -91,7 +90,10 @@ class SubAlignment():
         with open(part_path, 'r') as pfile:
             for line in pfile:
                 if line.startswith("\tcharset"):
-                    partitions.append(re.findall(r"(\d+-\d+)", line)[0])
+                    # Convert to tuple and save
+                    start, end = re.findall(r"(\d+-\d+)", line)[0].split("-")
+                    start, end = int(start), int(end)
+                    partitions.append((start, end))
 
         # Read alignment to split and store as dict
         sequences = {}
@@ -105,13 +107,13 @@ class SubAlignment():
             pname = "A"
             if i == 1:
                 pname = "B"
-            # TODO: what if partitions are not contiguous
-            start, end = map(int, partition.split("-"))
+            start, end = partition
             out_name = f"{self.rid}/partition_{pname}.fasta"
 
             with open(out_name, "w") as ofile:
                 for header, whole_seq in sequences.items():
-                    part_seq = str(whole_seq.seq[start:end])
+                    # start-1 because 0-based indexing
+                    part_seq = str(whole_seq.seq[start-1:end])
                     ofile.write(f">{header}\n")
                     ofile.write(f"{part_seq}\n")
 
@@ -169,13 +171,14 @@ class SubAlignment():
             for line in f:
                 if line.startswith("["):
                     line = line.split("\t")
+                    start = int(re.findall("(?<=\[)\d+(?=,)", line[0])[0])
+                    end = int(re.findall("(?<=,)\d+(?=\])", line[0])[0])
                     category = line[1].strip()
-                    sites = re.sub(",", "-", line[0])
-                    
+
                     if category == "1":
-                        self.sites_A.append(sites)
+                        self.sites_A.append((start, end))
                     elif category == "2":
-                        self.sites_B.append(sites)
+                        self.sites_B.append((start, end))
 
     def iteration(self, aln, num_threads, repo_path):
         """
