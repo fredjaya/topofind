@@ -30,5 +30,10 @@ class TestPartitioningScheme(unittest.TestCase):
         self.assertTrue(len(self.partscheme_test1.alignment) == 5000)
         self.assertTrue(self.partscheme_test1.alignment == ['A']*3500 + ['B']*1500)
 
+    def test_sites_from_alignment(self):
+        PartScheme = PartitioningScheme(['A', 'A', 'A', 'B', 'B', 'A', 'A'])
+        print(PartScheme.partitions)
+        #self.assertEqual(PartScheme.partitions, {'A': [(1,3),(6,7)], 'B': [(4,5)]})
+
 if __name__ == '__main__':
     unittest.main()

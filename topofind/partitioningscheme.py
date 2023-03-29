@@ -7,12 +7,13 @@ class PartitioningScheme():
 
     Here, subaln == SubAlignment to easier distinguish from self.alignment
     """
-    def __init__(self, subaln):
-        self.alignment = self.create_alignment(subaln)
-        self.bic_2t = subaln.bic_2t
-        self.model = subaln.model
+    def __init__(self, alignment):
+        self.alignment = alignment
+        self.partitions = self.sites_from_alignment()
+        self.bic_2t = float()
+        self.model = ""
 
-    def create_alignment(self, subaln):
+    def alignment_from_sites(self, subaln):
         """
         Create a list where each element corresponds to a site.
         Each site corresponds to, and will be iteratively updated to
@@ -38,17 +39,37 @@ class PartitioningScheme():
                 return True
         return False
 
-    def get_aln_length(aln_path):
+    def sites_from_alignment(self):
         """
-        Get the longest sequence length to initialise the first
-        PartitioningScheme.alignment = []
-        """
-        alns = SeqIO.parse(aln_path, "fasta")
-        seq_lengths = set()
-        for a in alns:
-            seq_lengths.update({len(a.seq)})
-        # TODO: What if unaligned, or length is variable?
-        return max(seq_lengthsd)
+        Generate a partition sites from an alignment
+        i.e. reverse of alignment_from_sites
 
-    def init_alignment(seq_length):
-        return ["0"]*seq_length
+        As the goal here is to create a tuple (start, end) for each contiguous
+        partition, the function will go through each site in the alignment and
+        check if the partition at site i+1 differs from site i.
+        """
+        # Prepare dictionary of all possible partitions
+        d = {key: [] for key in set(self.alignment)}
+        
+        current_partition = self.alignment[0]
+        start_pos = 1
+       
+        for i, partition in enumerate(self.alignment):
+            if partition != current_partition:
+                # usually, the site position is the list index i+1 but we need
+                # the position of the last partition before it changes,
+                # therefore use i.
+                prev_partition = self.alignment[i-1]
+                end_pos = i
+                # make tuple and append to dict value
+                d[prev_partition].append((start_pos, end_pos))
+                # Update to prepare for next partitions
+                current_partition = partition
+                start_pos = i+1
+            if i+1 == len(self.alignment):
+                # If at the end of the alignment, return end position and stop
+                end_pos = i+1
+                assert end_pos == len(self.alignment)
+                prev_partition = self.alignment[i-1]
+                d[prev_partition].append((start_pos, end_pos))
+        return d
