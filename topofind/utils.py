@@ -1,4 +1,5 @@
 import subprocess
+from Bio import SeqIO
 
 def run_command(cmd):
     """
@@ -19,3 +20,14 @@ def run_command(cmd):
     if exit_code != 0:
         print(stderr)
     return stdout, stderr, exit_code
+
+def new_alignment(aln_path):
+    """                                                    
+    Get the longest sequence length to initialise the first
+    PartitioningScheme.alignment = []                      
+    """
+    alns = SeqIO.parse(aln_path, "fasta")
+    seq_lengths = set()                  
+    for a in alns:                       
+        seq_lengths.update({len(a.seq)}) 
+    return ["0"]*max(seq_lengths)        

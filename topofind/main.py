@@ -1,6 +1,6 @@
 import argparse
 import os
-from topofind import partitioningscheme
+from topofind.partitioningscheme import PartitioningScheme
 from topofind.subalignment import SubAlignment
 from topofind import utils
 
@@ -19,30 +19,19 @@ def main():
     n_trees=1
 
     """
-    Initialise dictionaries for classes
+    Initialise dictionaries for result objects
     """
-    # TODO: make dict to save all PartitioningSchemes
-    # TODO: make dict to save all SubAlignments
-    
-    """
-    Initialise first PartitioningScheme class
-    """
+    partitioning_schemes = {}
+    subalignments = {}
 
-    #seq_len = t1.get_aln_length(args.aln)
-    #init_aln = t1.init_alignment(seq_len)
-    #PartitioningScheme = partitioningscheme.PartitioningScheme(init_aln, float("inf"))
-    
     while bic_improving:
-        # 1. Get the different partitions from PartitioningScheme.alignment
-        if n_trees == 1:
-            # Create a SubAlignment instance and run R2 analysis
-            # An instance is an individual object created from a class,
-            # where a class is like a blueprint
-            subalignment = SubAlignment()
-            subalignment.iteration(args.aln_path, args.num_threads, repo_path)
+        if not partitioning_schemes:
+            # Create blank, starting alignment on first pass
+            alignment = utils.new_alignment(args.aln_path)
+            new_PartScheme = PartitioningScheme(alignment)
 
-        # 2. Identify the partition with the lowest BIC after previous split()
-        # 3. Run split()
-        # 4. Record results to SubAlignment and PartitioningScheme
+        possible_schemes = set(new_PartScheme.alignment)
+        for partition_name in possible_schemes:
+            SubAln = SubAlignment(partition_name)
+            SubAln.iteration(args.aln_path, args.num_threads, repo_path) 
         bic_improving=False
-

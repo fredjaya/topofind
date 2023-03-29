@@ -6,8 +6,8 @@ from Bio import SeqIO
 from io import StringIO
 
 class SubAlignment():
-    def __init__(self):
-        self.rid = self.random_id()
+    def __init__(self, partition_name):
+        self.run_id = self.generate_id(partition_name)
         self.model = ""
         #self.r2_partition_A = {} # k: header; v: seq
         #self.r2_partition_B = {} 
@@ -21,22 +21,27 @@ class SubAlignment():
     def total_sites(self):
         return max(self.sites_A[-1][1], self.sites_B[-1][1])
 
-    def random_id(self):
+    def generate_id(self, partition_name):
         """
-        Generate a unique (hopefully) string to identify each run
+        SubAlignment.iteration() takes in a single partition and splits it in
+        two. Simply, add A and B to the end of the input partition
         """
-        return str(uuid.uuid4()).split("-")[0]
-    
+        if partition_name == '0':
+            return "A_B"
+        pA = partition_name + "A"
+        pB = partition_name + "B"
+        return f"{pA}_{pB}"
+
     def run_r2(self, aln_path, nthreads):
         """
         Take an input alignment, construct a single tree using the best-fitting +R2
         model and output site-lh and alninfo files.
         """
-        print(f"[{self.rid}]\tMaking a single tree with the best-fitting +R2 model")
-        os.mkdir(self.rid)
+        print(f"[{self.run_id}]\tMaking a single tree with the best-fitting +R2 model")
+        os.mkdir(self.run_id)
         # TODO: Replace hardcode
         iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
-        cmd = f"{iqtree_path} -s {aln_path} -pre {self.rid}/r2 -mrate R2 -nt {str(nthreads)} -wslr -wspr -alninfo"
+        cmd = f"{iqtree_path} -s {aln_path} -pre {self.run_id}/r2 -mrate R2 -nt {str(nthreads)} -wslr -wspr -alninfo"
         stdout, stderr, exit_code = utils.run_command(cmd)
 
     def parse_best_model(self):
@@ -44,14 +49,14 @@ class SubAlignment():
         "grep" the best substitution model from run_r2 and save as attribute
         for downstream iq-tree runs
         """
-        iqtree_file = f"{self.rid}/r2.iqtree"
+        iqtree_file = f"{self.run_id}/r2.iqtree"
         r = re.compile("^Best-fit model according to BIC: ")
 
         with open(iqtree_file, 'r') as f:
             for line in f:
                 if re.search(r, line):
                     self.model = line.split(" ")[-1].strip()
-                    print(f"[{self.rid}]\tBest-fit model according to BIC: {self.model}")
+                    print(f"[{self.run_id}]\tBest-fit model according to BIC: {self.model}")
     
     def parse_bic(self, iqtree_file, attr):
         """
@@ -69,11 +74,11 @@ class SubAlignment():
         """
         Using the MixtureModelHMM in R, assign sites to one of two +R2 classes
         """
-        print(f"[{self.rid}]\tAssigning sites to rate-categories with HMM")
+        print(f"[{self.run_id}]\tAssigning sites to rate-categories with HMM")
         rscript_path = os.path.join(repo_path, "../bin", "hmm_assign_sites.R")
-        sitelh = f"{self.rid}/r2.sitelh"
-        alninfo = f"{self.rid}/r2.alninfo"
-        cmd = f"Rscript {rscript_path} {sitelh} {alninfo} {self.rid}"
+        sitelh = f"{self.run_id}/r2.sitelh"
+        alninfo = f"{self.run_id}/r2.alninfo"
+        cmd = f"Rscript {rscript_path} {sitelh} {alninfo} {self.run_id}"
         stdout, stderr, exit_code = utils.run_command(cmd)
 
     def partition_aln(self, aln_file):
@@ -83,10 +88,10 @@ class SubAlignment():
         TODO: 
             - check if previous alignment exists in memory
         """
-        print(f"[{self.rid}]\tPartitioning...")
+        print(f"[{self.run_id}]\tPartitioning...")
         # Read partitions and save to list
         partitions = []
-        part_path = f"{self.rid}/r2.partition"
+        part_path = f"{self.run_id}/r2.partition"
         with open(part_path, 'r') as pfile:
             for line in pfile:
                 if line.startswith("\tcharset"):
@@ -108,7 +113,7 @@ class SubAlignment():
             if i == 1:
                 pname = "B"
             start, end = partition
-            out_name = f"{self.rid}/partition_{pname}.fasta"
+            out_name = f"{self.run_id}/partition_{pname}.fasta"
 
             with open(out_name, "w") as ofile:
                 for header, whole_seq in sequences.items():
@@ -130,8 +135,8 @@ class SubAlignment():
         """
         Run iqtree using the best model from run_r2 on each new partition.
         """
-        print(f"[{self.rid}]\tMaking trees for partition {pname}")
-        file_prefix = f"{self.rid}/partition_{pname}"
+        print(f"[{self.run_id}]\tMaking trees for partition {pname}")
+        file_prefix = f"{self.run_id}/partition_{pname}"
         # TODO: Replace hardcode
         iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
         cmd = f"{iqtree_path} -s {file_prefix}.fasta -pre {file_prefix} -m {self.model} -nt {nthreads}"
@@ -142,23 +147,23 @@ class SubAlignment():
         Concatenate trees made from part A and B into a single file for tree mixture input
         """
         # TODO: Account for only one topology
-        with open(f"{self.rid}/partition_A.treefile", 'r') as tfile_A, \
-        open(f"{self.rid}/partition_B.treefile", 'r') as tfile_B, \
-        open(f"{self.rid}/concat.treefile", 'w') as outfile:
+        with open(f"{self.run_id}/partition_A.treefile", 'r') as tfile_A, \
+        open(f"{self.run_id}/partition_B.treefile", 'r') as tfile_B, \
+        open(f"{self.run_id}/concat.treefile", 'w') as outfile:
             outfile.write(tfile_A.read())
             outfile.write(tfile_B.read())
 
     def run_hmmster(self, original_aln, num_threads):
-        print(f"[{self.rid}]\tRunning HMMSTER")
+        print(f"[{self.run_id}]\tRunning HMMSTER")
         iqtree_path="/home/frederickjaya/Downloads/iqtree-2.2.3.hmmster-Linux/bin/iqtree2"
-        cmd = f"{iqtree_path} -s {original_aln} -pre {self.rid}/hmmster -m {self.model}+T -nt {num_threads} -hmmster{{gm}} -te {self.rid}/concat.treefile"
+        cmd = f"{iqtree_path} -s {original_aln} -pre {self.run_id}/hmmster -m {self.model}+T -nt {num_threads} -hmmster{{gm}} -te {self.run_id}/concat.treefile"
         stdout, stderr, exit_code = utils.run_command(cmd)
 
     def parse_topologies(self):
         """
         Store output HMMSTER topologies
         """
-        with open(f"{self.rid}/hmmster.treefile", 'r') as f:
+        with open(f"{self.run_id}/hmmster.treefile", 'r') as f:
             for line, pname in zip(f, ['A', 'B']):
                 setattr(self, f"topology_{pname}", line.strip())
 
@@ -167,7 +172,7 @@ class SubAlignment():
         Store output HMMSTER topologies
         """
         r = re.compile(r"\[\d+,\d+\]\t\d+$")
-        with open(f"{self.rid}/hmmster.hmm", 'r') as f:
+        with open(f"{self.run_id}/hmmster.hmm", 'r') as f:
             for line in f:
                 if line.startswith("["):
                     line = line.split("\t")
@@ -187,7 +192,7 @@ class SubAlignment():
         # TODO: What if R1 > R2?
         self.run_r2(aln, num_threads)
         self.parse_best_model()
-        self.parse_bic(f"{self.rid}/r2.iqtree", "bic_1t")
+        self.parse_bic(f"{self.run_id}/r2.iqtree", "bic_1t")
         self.run_Rhmm(repo_path)
         self.partition_aln(aln)
         # TODO: Run in parallel
@@ -196,7 +201,7 @@ class SubAlignment():
         self.concat_part_trees()
         self.run_hmmster(aln, num_threads)
         # TODO: Get correct HMM BIC
-        self.parse_bic(f"{self.rid}/hmmster.iqtree", "bic_2t")
+        self.parse_bic(f"{self.run_id}/hmmster.iqtree", "bic_2t")
         self.parse_topologies() 
         self.parse_hmm_sites() 
         print(vars(self))
