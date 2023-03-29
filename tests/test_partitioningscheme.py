@@ -31,9 +31,23 @@ class TestPartitioningScheme(unittest.TestCase):
         self.assertTrue(self.partscheme_test1.alignment == ['A']*3500 + ['B']*1500)
 
     def test_sites_from_alignment(self):
-        PartScheme = PartitioningScheme(['A', 'A', 'A', 'B', 'B', 'A', 'A'])
-        print(PartScheme.partitions)
-        #self.assertEqual(PartScheme.partitions, {'A': [(1,3),(6,7)], 'B': [(4,5)]})
+        """
+        Simple two-partition case
+        """
+        # Two-partition case
+        PS1 = PartitioningScheme(['A', 'A', 'A', 'B', 'B', 'A', 'A'])
+        self.assertEqual(PS1.partitions, {'A': [(1,3),(6,7)], 'B': [(4,5)]})
+    
+        """
+        Three partitions
+        """
+        PS2 = PartitioningScheme(['AA', 'AA', 'AB', 'B', 'B', 'AB', 'AB'])
+        self.assertEqual(PS2.partitions, {'AA': [(1,2)], 'AB': [(3,3),(6,7)], 'B': [(4,5)]})
 
+        """
+        Three partitions with single-site partitions
+        """
+        PS3 = PartitioningScheme(['AA', 'AA', 'ABA', 'B', 'B', 'ABA', 'ABB'])
+        self.assertEqual(PS3.partitions, {'AA': [(1,2)], 'ABA': [(3,3),(6,6)], 'ABB': [(7,7)], 'B': [(4,5)]})
 if __name__ == '__main__':
     unittest.main()

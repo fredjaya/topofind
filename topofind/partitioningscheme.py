@@ -70,6 +70,5 @@ class PartitioningScheme():
                 # If at the end of the alignment, return end position and stop
                 end_pos = i+1
                 assert end_pos == len(self.alignment)
-                prev_partition = self.alignment[i-1]
-                d[prev_partition].append((start_pos, end_pos))
+                d[partition].append((start_pos, end_pos))
         return d
